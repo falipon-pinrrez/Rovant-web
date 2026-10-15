@@ -27,6 +27,64 @@
         <img src="../Iconos/Login2.png" alt="" class="img-login2">
     </div>
 
+    <!-- ============================================================ -->
+    <!-- ===== OVERLAY + MODAL CAMBIO DE CONTRASEÑA (fondo 50%) ===== -->
+    <!-- ============================================================ -->
+    <div class="overlay" id="overlay">
+        <div class="modal-cambio">
+            <h2 class="modal-titulo">🔒 Cambia tu contraseña</h2>
+            <p class="modal-subtitulo">Por seguridad, debes cambiar tu contraseña antes de continuar.</p>
+
+            <!-- Contraseña actual -->
+            <label class="modal-label" for="passActual">Contraseña actual</label>
+            <div class="input-wrap">
+                <input type="password" id="passActual" class="modal-input" autocomplete="current-password">
+                <button type="button" class="toggle-pass" data-target="passActual" aria-label="Mostrar contraseña">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+            </div>
+
+            <!-- Nueva contraseña -->
+            <label class="modal-label" for="passNueva">Nueva contraseña</label>
+            <div class="input-wrap">
+                <input type="password" id="passNueva" class="modal-input" autocomplete="new-password">
+                <button type="button" class="toggle-pass" data-target="passNueva" aria-label="Mostrar contraseña">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+            </div>
+            <div class="pass-feedback" id="feedbackNueva">Mínimo 8 caracteres</div>
+
+            <!-- Confirmar nueva contraseña -->
+            <label class="modal-label" for="passConfirmar">Confirmar nueva contraseña</label>
+            <div class="input-wrap">
+                <input type="password" id="passConfirmar" class="modal-input" autocomplete="new-password">
+                <button type="button" class="toggle-pass" data-target="passConfirmar" aria-label="Mostrar contraseña">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+            </div>
+            <div class="pass-feedback" id="feedbackConfirmar"></div>
+
+            <button class="modal-btn" type="button" id="btnCambiar">Guardar contraseña</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ===== OVERLAY DE ÉXITO (fondo 90%) ===== -->
+    <!-- ============================================================ -->
+    <div class="overlay-exito" id="overlayExito">
+        <div class="modal-exito">
+            <div class="exito-icono">✅</div>
+            <h2 class="exito-titulo">¡Contraseña actualizada!</h2>
+            <p class="exito-mensaje">Tu contraseña fue cambiada correctamente.<br>Ya puedes acceder a la plataforma.</p>
+            <button class="exito-btn" type="button" id="btnOkExito">OK</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
