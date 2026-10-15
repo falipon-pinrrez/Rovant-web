@@ -4,28 +4,21 @@
 const BASE = {
   W: 1512,
   H: 982,
-  cabecera: { h: 140 },
-  logoHeader: { x: 70, y: 42, w: 288, h: 62 },
+  cabecera: { h: 70 },
+  logoHeader: { x: 70, y: 18, w: 170, h: 36 },
   nav: {
-    y: 63,
-    fontSize: 20,
-    items: [
-      { text: 'Inicio', x: 519 },
-      { text: 'Características', x: 625, y: 61 },
-      { text: 'Beneficios', x: 827 },
-      { text: 'Descargas', x: 966 },
-      { text: 'Contacto', x: 1119 }
-    ]
+    gap: 40,
+    fontSize: 15
   },
-  lineaActiva: { x: 514, y: 97, w: 55, h: 3 },
-  menuHamburguesa: { x: 1386, y: 54, w: 32, h: 42 },
-  logoPrincipal: { x: 146, y: 247, w: 400, h: 86 },
-  textoPrincipal: { x: 146, y: 386, w: 520, fontSize: 24 },
-  subtitulo: { x: 146, y: 560, fontSize: 16 },
-  btnDescarga: { x: 143, y: 660, w: 347, h: 91, fontSize: 20 },
+  lineaActiva: { h: 3 },
+  menuHamburguesa: { x: 1386, y: 20, w: 24, h: 30 },
+  logoPrincipal: { x: 146, y: 180, w: 400, h: 86 },
+  textoPrincipal: { x: 146, y: 320, w: 520, fontSize: 24 },
+  subtitulo: { x: 146, y: 494, fontSize: 16 },
+  btnDescarga: { x: 143, y: 594, w: 347, h: 91, fontSize: 20 },
   iconoAndroid: { w: 42, h: 42 },
   iconoDescarga: { w: 32, h: 32 },
-  publicidad: { right: 0, y: 180, w: 700 }
+  publicidad: { right: 0, y: 120, w: 700 }
 };
 
 // ============================
@@ -34,16 +27,16 @@ const BASE = {
 const MOVIL = {
   W: 428,
   H: 926,
-  cabecera: { h: 82 },
-  logoHeader: { x: 142, y: 26, w: 144, h: 31 },
-  menuHamburguesa: { x: 380, y: 32, w: 20, h: 20 },
-  logoPrincipal: { x: 85, y: 131, w: 258, h: 56 },
-  textoPrincipal: { x: 52, y: 206, w: 324, fontSize: 16 },
-  subtitulo: { x: 52, y: 330, fontSize: 14 },
-  btnDescarga: { x: 108, y: 410, w: 212, h: 55, fontSize: 13 },
+  cabecera: { h: 50 },
+  logoHeader: { x: 142, y: 12, w: 100, h: 22 },
+  menuHamburguesa: { x: 380, y: 15, w: 18, h: 18 },
+  logoPrincipal: { x: 85, y: 90, w: 258, h: 56 },
+  textoPrincipal: { x: 52, y: 165, w: 324, fontSize: 16 },
+  subtitulo: { x: 52, y: 289, fontSize: 14 },
+  btnDescarga: { x: 108, y: 369, w: 212, h: 55, fontSize: 13 },
   iconoAndroid: { w: 26, h: 26 },
   iconoDescarga: { w: 19, h: 20 },
-  publicidad: { x: -20, y: 520, w: 430 }
+  publicidad: { x: -20, y: 479, w: 430 }
 };
 
 // ============================
@@ -87,24 +80,41 @@ function ajustar() {
   if (esMovil) {
     menuPc.style.display = 'none';
   } else {
-    menuPc.style.display = 'block';
+    menuPc.style.display = 'flex';
+    menuPc.style.justifyContent = 'center';
+    menuPc.style.paddingLeft = '0';
+    menuPc.style.paddingRight = '0';
+    menuPc.style.gap = (BASE.nav.gap * sx) + 'px';
 
-    document.querySelectorAll('.menu-pc .nav-link').forEach((link, i) => {
-      const item = BASE.nav.items[i];
-      link.style.left = (item.x * sx) + 'px';
-      link.style.top = ((item.y || BASE.nav.y) * sx) + 'px';
+    document.querySelectorAll('.menu-pc .nav-link').forEach((link) => {
       link.style.fontSize = (BASE.nav.fontSize * sx) + 'px';
     });
 
+    // === CENTRADO ENTRE LOGO Y HAMBURGUESA ===
+    const bordeLogo = (BASE.logoHeader.x + BASE.logoHeader.w) * sx;
+    const bordeHamb = BASE.menuHamburguesa.x * sx;
+    const centroDisponible = (bordeLogo + bordeHamb) / 2;
+    const centroViewport = ancho / 2;
+    const desplazamiento = centroDisponible - centroViewport;
+
+    if (desplazamiento >= 0) {
+      menuPc.style.paddingLeft = desplazamiento + 'px';
+      menuPc.style.paddingRight = '0';
+    } else {
+      menuPc.style.paddingLeft = '0';
+      menuPc.style.paddingRight = Math.abs(desplazamiento) + 'px';
+    }
+
+    // Línea activa
     const linea = document.querySelector('.linea-activa');
     const activo = document.querySelector('.menu-pc .nav-link.activo');
     if (activo) {
       const rect = activo.getBoundingClientRect();
       const parent = activo.parentElement.getBoundingClientRect();
       linea.style.left = (rect.left - parent.left) + 'px';
-      linea.style.top = (BASE.lineaActiva.y * sx) + 'px';
       linea.style.width = rect.width + 'px';
       linea.style.height = (BASE.lineaActiva.h * sx) + 'px';
+      linea.style.bottom = (8 * sx) + 'px';
     }
   }
 
@@ -129,7 +139,7 @@ function ajustar() {
   sub.style.fontSize = (cfg.subtitulo.fontSize * sx) + 'px';
 
   // ============================
-  // BOTÓN DESCARGA (sin trazo negro, radio dinámico)
+  // BOTÓN DESCARGA
   // ============================
   const btn = document.querySelector('.btn-descarga');
   const btnW = cfg.btnDescarga.w * sx;
@@ -141,11 +151,8 @@ function ajustar() {
   btn.style.height = btnH + 'px';
   btn.style.fontSize = (cfg.btnDescarga.fontSize * sx) + 'px';
   btn.style.gap = (14 * sx) + 'px';
-
-  // Radio perfecto (mitad del alto → pastilla completa)
   btn.style.borderRadius = (btnH / 2) + 'px';
 
-  // Sin bordes ni contornos de ningún tipo
   btn.style.border = 'none';
   btn.style.outline = 'none';
   btn.style.boxShadow = 'none';
@@ -171,7 +178,7 @@ function ajustar() {
   icD.style.display = 'block';
 
   // ============================
-  // PUBLICIDAD - alto según proporción REAL de la imagen
+  // PUBLICIDAD
   // ============================
   const pub = document.querySelector('.publicidad');
   const pubW = cfg.publicidad.w * sx;
@@ -193,7 +200,6 @@ function ajustar() {
 
   // ============================
   // ALTO DEL CONTENIDO
-  // Termina JUSTO en el borde inferior de la publicidad
   // ============================
   const contenido = document.querySelector('.contenido');
 
@@ -209,7 +215,7 @@ function ajustar() {
   const menuMovil = document.getElementById('menuMovil');
   menuMovil.style.top = (cfg.cabecera.h * sx) + 'px';
 
-  // Alto total de la pantalla = cabecera + contenido
+  // Alto total de la pantalla
   const pantalla = document.querySelector('.pantalla');
   pantalla.style.height = altoContenido + 'px';
   pantalla.style.minHeight = '0';

@@ -43,21 +43,28 @@ html, body {
   z-index: 102;
 }
 
+/* MENÚ PC — flex con espacio uniforme entre botones */
 .menu-pc {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 0;
 }
 
 .nav-link {
-  position: absolute;
+  position: relative;
   text-decoration: none;
   color: #697180;
   font-weight: 700;
   white-space: nowrap;
   transition: color .3s;
+  padding-bottom: 8px;
 }
 
 .nav-link.activo {
@@ -66,12 +73,13 @@ html, body {
 
 .linea-activa {
   position: absolute;
+  bottom: 8px;
   background: #3382F3;
   border-radius: 2px;
+  transition: left .25s ease, width .25s ease;
 }
 
-/* MENÚ HAMBURGUESA
-   Visible en PC y móvil (JS controla posición/tamaño) */
+/* MENÚ HAMBURGUESA */
 .menu-hamburguesa {
   position: absolute;
   cursor: pointer;
