@@ -69,17 +69,19 @@ function ajustar() {
   const menuPc = document.querySelector('.menu-pc');
   const menuHamb = document.querySelector('.menu-hamburguesa');
 
-  menuHamb.style.display = 'block';
-  menuHamb.style.visibility = 'visible';
-  menuHamb.style.opacity = '1';
-  menuHamb.style.left = (cfg.menuHamburguesa.x * sx) + 'px';
-  menuHamb.style.top = (cfg.menuHamburguesa.y * sx) + 'px';
-  menuHamb.style.width = (cfg.menuHamburguesa.w * sx) + 'px';
-  menuHamb.style.height = (cfg.menuHamburguesa.h * sx) + 'px';
-
   if (esMovil) {
+    // 🔹 En móvil: se muestra la hamburguesa
     menuPc.style.display = 'none';
+    menuHamb.style.display = 'block';
+    menuHamb.style.visibility = 'visible';
+    menuHamb.style.opacity = '1';
+    menuHamb.style.left = (cfg.menuHamburguesa.x * sx) + 'px';
+    menuHamb.style.top = (cfg.menuHamburguesa.y * sx) + 'px';
+    menuHamb.style.width = (cfg.menuHamburguesa.w * sx) + 'px';
+    menuHamb.style.height = (cfg.menuHamburguesa.h * sx) + 'px';
   } else {
+    // 🔹 En PC: se oculta la hamburguesa completamente
+    menuHamb.style.display = 'none';
     menuPc.style.display = 'flex';
     menuPc.style.justifyContent = 'center';
     menuPc.style.paddingLeft = '0';
@@ -90,10 +92,10 @@ function ajustar() {
       link.style.fontSize = (BASE.nav.fontSize * sx) + 'px';
     });
 
-    // === CENTRADO ENTRE LOGO Y HAMBURGUESA ===
+    // === CENTRADO ENTRE LOGO Y HAMBURGUESA (aunque ya no haya hamburguesa,
+    //    seguimos centrando respecto al viewport) ===
     const bordeLogo = (BASE.logoHeader.x + BASE.logoHeader.w) * sx;
-    const bordeHamb = BASE.menuHamburguesa.x * sx;
-    const centroDisponible = (bordeLogo + bordeHamb) / 2;
+    const centroDisponible = (bordeLogo + ancho) / 2;
     const centroViewport = ancho / 2;
     const desplazamiento = centroDisponible - centroViewport;
 
@@ -256,8 +258,15 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ============================
+// NAV MÓVIL - LINK ACTIVO
+// ============================
 document.querySelectorAll('.nav-link-movil').forEach(link => {
-  link.addEventListener('click', () => {
+  link.addEventListener('click', (e) => {
+    if (link.classList.contains('btn-login-movil')) {
+      menuMovil.classList.remove('abierto');
+      return;
+    }
     document.querySelectorAll('.nav-link-movil').forEach(l => l.classList.remove('activo-movil'));
     link.classList.add('activo-movil');
     menuMovil.classList.remove('abierto');
@@ -269,6 +278,9 @@ document.querySelectorAll('.nav-link-movil').forEach(link => {
 // ============================
 document.querySelectorAll('.menu-pc .nav-link').forEach(link => {
   link.addEventListener('click', (e) => {
+    if (link.classList.contains('btn-login-pc')) {
+      return;
+    }
     e.preventDefault();
     document.querySelectorAll('.menu-pc .nav-link').forEach(l => l.classList.remove('activo'));
     link.classList.add('activo');

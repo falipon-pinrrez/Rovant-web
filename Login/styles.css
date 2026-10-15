@@ -1,0 +1,244 @@
+/* ===== RESET Y BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #ffffff;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.login-container {
+    position: relative;
+    width: 100%;
+    max-width: 1512px;
+    height: 100vh;
+    max-height: 982px;
+    background-color: #ffffff;
+    overflow: hidden;
+    aspect-ratio: 1512 / 982;
+}
+
+/* ===== ELEMENTOS POSICIONADOS (PC) ===== */
+
+/* --- Logo Rovant --- */
+.logo-rovant {
+    position: absolute;
+    left: 28.11%;
+    top: 22.81%;
+    width: 41.80%;
+    height: 13.85%;
+    object-fit: contain;
+    object-position: center;
+}
+
+/* --- Etiqueta Usuario --- */
+.label-usuario {
+    position: absolute;
+    left: 29.10%;
+    top: 37.88%;
+    font-size: clamp(14px, 1.32vw, 20px);
+    font-weight: bold;
+    color: #000000;
+    line-height: 1;
+}
+
+/* --- Input Usuario --- */
+.input-usuario {
+    position: absolute;
+    left: 29.03%;
+    top: 41.55%;
+    width: 41.87%;
+    height: 7.33%;
+    border-radius: 20px;
+    border: 3px solid #018EFA;
+    background-color: #ffffff;
+    padding: 0 20px;
+    font-size: clamp(14px, 1.32vw, 20px);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-usuario:focus {
+    border-color: #1776F7;
+    box-shadow: 0 0 0 2px rgba(23, 118, 247, 0.2);
+}
+
+/* --- Etiqueta Contraseña --- */
+.label-password {
+    position: absolute;
+    left: 29.10%;
+    top: 52.85%;
+    font-size: clamp(14px, 1.32vw, 20px);
+    font-weight: bold;
+    color: #000000;
+    line-height: 1;
+}
+
+/* --- Input Contraseña --- */
+.input-password {
+    position: absolute;
+    left: 29.10%;
+    top: 55.80%;
+    width: 41.87%;
+    height: 7.33%;
+    border-radius: 20px;
+    border: 3px solid #018EFA;
+    background-color: #ffffff;
+    padding: 0 20px;
+    font-size: clamp(14px, 1.32vw, 20px);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-password:focus {
+    border-color: #1776F7;
+    box-shadow: 0 0 0 2px rgba(23, 118, 247, 0.2);
+}
+
+/* --- Botón Iniciar Sesión (PC) --- */
+.btn-login {
+    position: absolute;
+    left: 35.52%;
+    top: 67.82%;
+    width: 29.03%;
+    height: 9.16%;
+    border-radius: 50px;
+    background-color: #1776F7;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: clamp(20px, 2.38vw, 36px);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 10px rgba(23, 118, 247, 0.3);
+}
+
+.btn-login:hover {
+    background-color: #0f5fd0;
+}
+
+.btn-login:active {
+    transform: scale(0.98);
+}
+
+/* --- Imágenes decorativas --- */
+.img-login1 {
+    position: absolute;
+    left: 0%;
+    top: 11.51%;
+    width: 30.03%;
+    height: 83.71%;
+    object-fit: contain;
+    object-position: left bottom;
+    pointer-events: none;
+}
+
+.img-login2 {
+    position: absolute;
+    left: 68.19%;
+    top: 7.94%;
+    width: 31.81%;
+    height: 88.59%;
+    object-fit: contain;
+    object-position: right bottom;
+    pointer-events: none;
+}
+
+/* ===== MEDIA QUERY PARA MÓVIL ===== */
+@media (max-width: 1023px) {
+    .login-container {
+        max-width: 428px;
+        max-height: 926px;
+        aspect-ratio: 428 / 926;
+        height: 100vh;
+        width: 100%;
+    }
+
+    /* --- Logo Rovant (Móvil) --- */
+    .logo-rovant {
+        left: 24.77%;
+        top: 15.87%;
+        width: 54.21%;
+        height: 5.40%;
+    }
+
+    /* --- Etiqueta Usuario (Móvil) --- */
+    .label-usuario {
+        left: 14.02%;
+        top: 23.43%;
+        font-size: clamp(14px, 4.67vw, 20px);
+    }
+
+    /* --- Input Usuario (Móvil) --- */
+    .input-usuario {
+        left: 13.08%;
+        top: 27.21%;
+        width: 73.83%;
+        height: 5.62%;
+        padding: 0 15px;
+        font-size: clamp(14px, 4.67vw, 20px);
+    }
+
+    /* --- Etiqueta Contraseña (Móvil) --- */
+    .label-password {
+        left: 14.02%;
+        top: 34.99%;
+        font-size: clamp(14px, 4.67vw, 20px);
+    }
+
+    /* --- Input Contraseña (Móvil) --- */
+    .input-password {
+        left: 13.08%;
+        top: 38.77%;
+        width: 73.83%;
+        height: 5.62%;
+        padding: 0 15px;
+        font-size: clamp(14px, 4.67vw, 20px);
+    }
+
+    /* --- Botón Iniciar Sesión (Móvil) --- */
+    .btn-login {
+        left: 30.61%;
+        top: 50.00%;
+        width: 39.02%;
+        height: 5.08%;
+        font-size: clamp(13px, 3.8vw, 18px);   /* 🔹 Letra proporcionada */
+        letter-spacing: 0.3px;                  /* 🔹 Un poco de aire entre letras */
+        padding: 0 8px;                         /* 🔹 Evita que el texto toque bordes */
+        white-space: nowrap;                    /* 🔹 Evita saltos de línea */
+    }
+
+    /* --- Imágenes decorativas (Móvil) --- */
+    .img-login1 {
+        left: 0%;
+        top: 58.86%;
+        width: 49.30%;
+        height: 41.14%;
+    }
+
+    .img-login2 {
+        left: 49.30%;
+        top: 57.56%;
+        width: 50.70%;
+        height: 42.44%;
+    }
+}
+
+/* Ajuste para pantallas muy pequeñas en altura */
+@media (max-width: 1023px) and (max-height: 700px) {
+    .login-container {
+        max-height: 100vh;
+    }
+}

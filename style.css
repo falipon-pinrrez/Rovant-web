@@ -79,12 +79,31 @@ html, body {
   transition: left .25s ease, width .25s ease;
 }
 
-/* MENÚ HAMBURGUESA */
+/* 🔹 BOTÓN "Iniciar sesión" en PC */
+.btn-login-pc {
+  background: #1776F7;
+  color: #ffffff !important;
+  padding: 8px 20px;
+  border-radius: 50px;
+  border-bottom: none !important;
+  transition: background .2s, transform .1s;
+}
+
+.btn-login-pc:hover {
+  background: #0f5fd0;
+  transform: translateY(-1px);
+}
+
+.btn-login-pc:active {
+  transform: scale(0.97);
+}
+
+/* MENÚ HAMBURGUESA — oculto por defecto en PC */
 .menu-hamburguesa {
   position: absolute;
   cursor: pointer;
   z-index: 103;
-  display: block;
+  display: none; /* 🔹 Oculto en PC */
 }
 
 /* ============================
@@ -195,4 +214,36 @@ html, body {
 .nav-link-movil.activo-movil {
   color: #3382F3;
   border-bottom-color: #3382F3;
+}
+
+/* 🔹 BOTÓN "Iniciar sesión" en MÓVIL */
+.btn-login-movil {
+  display: block;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #1776F7;
+  color: #ffffff !important;
+  text-align: center;
+  border-radius: 50px;
+  font-weight: 700;
+  border-bottom: none !important;
+  transition: background .2s, transform .1s;
+}
+
+.btn-login-movil:hover {
+  background: #0f5fd0;
+}
+
+.btn-login-movil:active {
+  transform: scale(0.98);
+}
+
+/* ============================
+   📱 MEDIA QUERY: SOLO MÓVIL
+   Aquí SÍ se muestra la hamburguesa
+============================ */
+@media (max-width: 768px) {
+  .menu-hamburguesa {
+    display: block; /* 🔹 Visible solo en móvil */
+  }
 }
