@@ -71,13 +71,12 @@ body {
    ============================================================ */
 .header {
   width: 100%;
-  background: #FFFFFF;
+  background: var(--bg-main);
   height: clamp(60px, 6vh, 90px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--padding-page);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -126,6 +125,19 @@ body {
   font-size: var(--fs-user-role);
   font-weight: bold;
   color: var(--blue-accent);
+}
+
+/* ============================================================
+   CHEVRON DEL USUARIO (solo visible en móvil/tablet)
+   ============================================================ */
+.user-chevron {
+  display: none;
+  width: 16px;
+  height: 16px;
+  color: var(--sidebar-bg);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  margin-left: 2px;
 }
 
 /* ============================================================
@@ -265,12 +277,13 @@ body {
   padding-left: clamp(0px, 0.3vw, 6px);
 }
 
-/* Card genérica */
+/* Card genérica — sin borde, con sombra sutil */
 .card {
   background: #FFFFFF;
-  border: 1px solid var(--card-border);
+  border: none;
   border-radius: var(--radius-card);
   padding: var(--padding-card);
+  box-shadow: 0 4px 14px rgba(12, 37, 67, 0.08);
 }
 
 .card-apk {
@@ -289,13 +302,13 @@ body {
   margin-bottom: clamp(14px, 1.6vh, 24px);
 }
 
-/* Icono Android.png — EN NEGRO (solo este archivo) */
+/* Icono Android.png — en color #1B60BF, un poco más pequeño */
 img[src*="Android.png"].card-icon {
-  width: var(--icon-card);
-  height: var(--icon-card);
+  width: calc(var(--icon-card) * 0.75);
+  height: calc(var(--icon-card) * 0.75);
   object-fit: contain;
   flex-shrink: 0;
-  filter: brightness(0) saturate(100%);
+  filter: brightness(0) saturate(100%) invert(31%) sepia(83%) saturate(2212%) hue-rotate(207deg) brightness(94%) contrast(94%);
 }
 
 .card-header .card-icon {
@@ -311,15 +324,60 @@ img[src*="Android.png"].card-icon {
   color: #000;
 }
 
-.empty-state {
+/* ============================================================
+   ESTADOS VACÍOS CON CÍRCULO MINIMALISTA
+   ============================================================ */
+
+/* Estado vacío dentro de la card APK (vertical: círculo + texto) */
+.card-apk .empty-state {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1.5vh, 20px);
+  color: #999;
+  padding: clamp(20px, 3vh, 50px) 10px;
+}
+
+/* Estado vacío dentro de la card de tareas (vertical) */
+.empty-state-tasks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1vh, 14px);
+  padding: clamp(16px, 2.5vh, 30px) 10px;
+}
+
+/* Círculo minimalista */
+.empty-circle {
+  width: clamp(56px, 5vw, 76px);
+  height: clamp(56px, 5vw, 76px);
+  border-radius: 50%;
+  background: var(--bg-main);
+  border: 2px solid #C5D4E3;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--sidebar-active);
+  flex-shrink: 0;
+}
+
+.empty-circle svg {
+  width: 52%;                        /* ligeramente más pequeño, deja respirar */
+  height: 52%;
+  display: block;                    /* elimina espacios fantasma del inline */
+  margin: auto;                      /* centrado absoluto dentro del flex */
+}
+
+/* Texto debajo del círculo */
+.empty-text {
+  font-size: clamp(12px, 1vw, 15px);
+  font-weight: 600;
   color: #999;
-  font-size: clamp(13px, 1vw, 17px);
-  font-weight: 500;
-  padding: clamp(20px, 3vh, 50px) 10px;
+  text-align: center;
+  margin: 0;
 }
 
 /* ============================================================
@@ -332,14 +390,16 @@ img[src*="Android.png"].card-icon {
   min-width: 0;
 }
 
+/* Card derecha — sin borde, con sombra sutil */
 .right-card {
   background: #FFFFFF;
-  border: 1px solid var(--card-border);
+  border: none;
   border-radius: var(--radius-card);
   padding: var(--padding-card);
   display: flex;
   flex-direction: column;
   gap: clamp(8px, 0.9vh, 14px);
+  box-shadow: 0 4px 14px rgba(12, 37, 67, 0.08);
 }
 
 .right-card-header {
@@ -363,7 +423,13 @@ img[src*="equipo.png"].rc-icon {
   filter: brightness(0) saturate(100%);
 }
 
-/* ⚠️ checklist.png NO lleva filtro → mantiene su color original */
+/* Icono checklist (SVG inline): cuadro azul #1B60BF con check blanco */
+.rc-icon-checklist {
+  width: var(--icon-rc);
+  height: var(--icon-rc);
+  flex-shrink: 0;
+  display: inline-block;
+}
 
 .right-card-header .rc-title {
   font-size: var(--fs-rc-title);
@@ -527,7 +593,24 @@ img[src*="equipo.png"].rc-icon {
 }
 
 /* ============================================================
-   RESPONSIVE — TABLET (<= 1100px)
+   OVERLAY (fondo oscuro al abrir el menú en móvil)
+   ============================================================ */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.menu-overlay.show {
+  display: block;
+  opacity: 1;
+}
+
+/* ============================================================
+   RESPONSIVE — TABLET / MÓVIL (<= 1100px)
    ============================================================ */
 @media (max-width: 1100px) {
 
@@ -537,34 +620,78 @@ img[src*="equipo.png"].rc-icon {
     gap: clamp(12px, 1.6vw, 20px);
   }
 
+  /* Sidebar como menú flotante lateral — se desliza desde la DERECHA */
   .sidebar {
-    min-height: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 12px clamp(14px, 1.6vw, 20px);
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: auto;
+    height: 100vh;
+    width: min(78vw, 300px);
+    border-radius: var(--radius-sidebar) 0 0 var(--radius-sidebar);
+    transform: translateX(105%);
+    transition: transform 0.3s ease;
+    z-index: 20;
+    overflow-y: auto;
+    padding: 80px 0 20px 0;
+    min-height: 0;
+    gap: 16px;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
   }
 
   .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0 16px;
     gap: 8px;
-    padding: 0;
     width: 100%;
-    justify-content: center;
   }
 
   .nav-item {
-    width: auto;
-    padding: 8px 14px;
-    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    gap: 12px;
+    font-size: 15px;
   }
 
   .nav-item[data-page="cerrar"] {
-    margin-top: 0;
+    margin-top: 20px;
   }
 
-  .sidebar-footer { display: none; }
+  .sidebar-footer {
+    display: flex;
+    margin-top: auto;
+    padding: 20px 20px 0;
+  }
+
+  .user-info {
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+  .user-info:active {
+    background: rgba(0,0,0,0.05);
+  }
+
+  .user-chevron {
+    display: inline-block;
+  }
+
+  body.menu-open .user-chevron {
+    transform: rotate(180deg);
+  }
+
+  .header .logo {
+    position: static;
+    transform: none;
+    margin: 0 auto 0 0;
+  }
 
   .main-content { grid-column: 1 / -1; }
 
@@ -586,43 +713,41 @@ img[src*="equipo.png"].rc-icon {
   .header {
     height: 60px;
     padding: 0 14px;
+    justify-content: space-between;
   }
 
   .header .logo {
-    height: 32px;
+    height: 28px;
+    margin: 0;
     position: static;
     transform: none;
   }
 
-  .header .user-info { margin-left: auto; }
+  .user-info {
+    margin-left: auto;
+  }
+
+  .header .user-name { font-size: 13px; }
+  .header .user-role { font-size: 10px; }
 
   .app-layout {
     padding: 12px;
   }
 
   .sidebar {
-    flex-direction: column;
-    padding: 14px;
-    gap: 10px;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 6px;
+    width: min(85vw, 280px);
+    padding-top: 70px;
   }
 
   .nav-item {
-    padding: 8px 12px;
-    font-size: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
   }
 
   .nav-icon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
-
-  .nav-text { font-size: 12px; }
 
   .right-column {
     grid-template-columns: 1fr;
@@ -635,8 +760,15 @@ img[src*="equipo.png"].rc-icon {
    RESPONSIVE — MÓVIL PEQUEÑO (<= 400px)
    ============================================================ */
 @media (max-width: 400px) {
-  .nav-text { font-size: 10px; }
-  .nav-icon { width: 16px; height: 16px; }
-  .nav-item { padding: 6px 8px; }
+  .sidebar {
+    width: 88vw;
+  }
+
+  .header .user-name { font-size: 12px; }
+  .header .user-role { font-size: 9px; }
+
+  .nav-text { font-size: 13px; }
+  .nav-icon { width: 20px; height: 20px; }
+  .nav-item { padding: 10px 12px; }
   .task-list { max-height: 260px; }
 }

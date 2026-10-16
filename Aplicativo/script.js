@@ -35,8 +35,30 @@ function renderTareas() {
     filtradas = tareas.filter(t => t.estado === "En Progreso");
   }
 
+  // ---- Estado vacío: círculo minimalista con tabla + check ----
   if (filtradas.length === 0) {
-    contenedor.innerHTML = '<div style="text-align:center;color:#999;font-size:12px;padding:20px 0;">No hay tareas</div>';
+    contenedor.innerHTML = `
+      <div class="empty-state empty-state-tasks">
+        <div class="empty-circle">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Tabla / lista -->
+            <rect x="4" y="4" width="16" height="16" rx="2"
+                  stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <line x1="4" y1="9" x2="20" y2="9"
+                  stroke="currentColor" stroke-width="1.6"/>
+            <line x1="4" y1="14" x2="20" y2="14"
+                  stroke="currentColor" stroke-width="1.6"/>
+            <line x1="10" y1="4" x2="10" y2="20"
+                  stroke="currentColor" stroke-width="1.6"/>
+            <!-- Check dentro -->
+            <polyline points="12.5 16.5 14 18 17 14.5"
+                      stroke="currentColor" stroke-width="1.8"
+                      stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <p class="empty-text">No hay tareas</p>
+      </div>
+    `;
     return;
   }
 
@@ -165,8 +187,6 @@ function renderEquipo(lista) {
 
 /* ============================================================
    OBTENER USUARIO LOGUEADO
-   Tu login guarda en sessionStorage:
-     - "rovant_user": { id, nombre, cargo, usuario, ... }
    ============================================================ */
 function obtenerUsuarioLogueado() {
   // ---- 1. Intento principal: sessionStorage.rovant_user ----
@@ -264,15 +284,65 @@ async function cargarDatosDesdeSupabase() {
     renderEquipo(usuariosEquipo);
 
     // ===== 5. TAREAS =====
-    // Aún no hay tareas asignadas. Cuando conectemos la tabla de tareas
-    // en Supabase, aquí se llenará el array "tareas" con datos reales.
     tareas = [];
-
     renderTareas();
 
   } catch (err) {
     console.error("Error general al cargar datos:", err);
   }
+}
+
+/* ============================================================
+   MENÚ DESPLEGABLE MÓVIL
+   Se abre al hacer clic en el avatar + nombre + cargo
+   ============================================================ */
+function inicializarMenuMovil() {
+  const sidebar = document.querySelector(".sidebar");
+  const userInfo = document.getElementById("userInfoToggle");
+  const overlay = document.getElementById("menuOverlay");
+
+  if (!sidebar) return;
+
+  const abrirMenu = () => {
+    sidebar.classList.add("open");
+    if (overlay) overlay.classList.add("show");
+    document.body.classList.add("menu-open");
+    document.body.style.overflow = "hidden";
+  };
+
+  const cerrarMenu = () => {
+    sidebar.classList.remove("open");
+    if (overlay) overlay.classList.remove("show");
+    document.body.classList.remove("menu-open");
+    document.body.style.overflow = "";
+  };
+
+  // Abrir/cerrar desde el avatar/nombre del usuario
+  if (userInfo) {
+    userInfo.addEventListener("click", (e) => {
+      if (window.innerWidth <= 1100) {
+        e.stopPropagation();
+        sidebar.classList.contains("open") ? cerrarMenu() : abrirMenu();
+      }
+    });
+  }
+
+  // Cerrar al tocar el overlay
+  if (overlay) {
+    overlay.addEventListener("click", cerrarMenu);
+  }
+
+  // Cerrar al hacer clic en cualquier nav-item
+  sidebar.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 1100) cerrarMenu();
+    });
+  });
+
+  // Cerrar al salir del rango móvil
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 1100) cerrarMenu();
+  });
 }
 
 /* ============================================================
@@ -282,6 +352,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   inicializarTabs();
   inicializarNavegacion();
   inicializarCerrarSesion();
+  inicializarMenuMovil();
 
   await cargarDatosDesdeSupabase();
 });
