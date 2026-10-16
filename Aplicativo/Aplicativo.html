@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rovant - Aplicativo</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- Cliente de Supabase (CDN oficial) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="header">
+    <img src="../Iconos/Rovant.png" alt="Rovant" class="logo">
+    <div class="user-info">
+      <img src="../Iconos/avatar1.png" alt="Usuario" class="user-avatar" id="headerAvatar">
+      <div class="user-text">
+        <span class="user-name" id="headerUserName">Juan Pérez</span>
+        <span class="user-role" id="headerUserRole">Administrador</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ LAYOUT ============ -->
+  <div class="app-layout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="Aplicativo.html" class="nav-item active" data-page="inicio">
+          <img src="../Iconos/casa.png" alt="Inicio" class="nav-icon">
+          <span class="nav-text">Inicio</span>
+        </a>
+        <a href="Upgrade/Upgrade.html" class="nav-item" data-page="upgrade">
+          <img src="../Iconos/ventana.png" alt="Upgrade APK" class="nav-icon">
+          <span class="nav-text">Upgrade APK</span>
+        </a>
+        <a href="Tareas/Tareas.html" class="nav-item" data-page="tareas">
+          <img src="../Iconos/tarea.png" alt="Tareas" class="nav-icon">
+          <span class="nav-text">Tareas</span>
+        </a>
+        <a href="Equipo/Equipo.html" class="nav-item" data-page="equipo">
+          <img src="../Iconos/equipo.png" alt="Equipo" class="nav-icon">
+          <span class="nav-text">Equipo</span>
+        </a>
+        <a href="settings/settings.html" class="nav-item" data-page="setting">
+          <img src="../Iconos/settings.png" alt="Setting" class="nav-icon">
+          <span class="nav-text">Setting</span>
+        </a>
+
+        <!-- ===== BOTÓN CERRAR SESIÓN ===== -->
+        <a href="#" class="nav-item" data-page="cerrar" id="btnCerrarSesion">
+          <!-- Icono SVG inline (no requiere archivo externo) -->
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span class="nav-text">Cerrar Sesión</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <img src="../Iconos/Rovant-blanco.png" alt="Rovant" class="footer-logo">
+        <p class="footer-text">Movilidad control y<br>productividad en un solo lugar</p>
+      </div>
+    </aside>
+
+    <!-- ===== CONTENIDO CENTRAL ===== -->
+    <main class="main-content">
+      <h1 class="welcome">Bienvenido, <span id="welcomeUserName">Juan Pérez</span></h1>
+
+      <div class="card card-apk">
+        <div class="card-header">
+          <img src="../Iconos/Android.png" alt="Android" class="card-icon">
+          <h2 class="card-title">Seleccionar APK</h2>
+        </div>
+        <div class="empty-state">No hay APKs</div>
+      </div>
+    </main>
+
+    <!-- ===== COLUMNA DERECHA ===== -->
+    <aside class="right-column">
+
+      <!-- Card Equipo -->
+      <div class="right-card card-equipo">
+        <div class="right-card-header">
+          <img src="../Iconos/equipo.png" alt="Equipo" class="rc-icon">
+          <span class="rc-title">Miembros del equipo Rovant</span>
+        </div>
+
+        <div class="team-list">
+          <!-- Se llena dinámicamente desde Supabase -->
+        </div>
+      </div>
+
+      <!-- Card Tareas -->
+      <div class="right-card">
+        <div class="right-card-header">
+          <img src="../Iconos/checklist.png" alt="Tareas" class="rc-icon">
+          <span class="rc-title">Tareas de equipo</span>
+        </div>
+
+        <div class="task-tabs">
+          <button class="task-tab active" data-tab="grupo">Grupo</button>
+          <button class="task-tab" data-tab="completas">Completas</button>
+          <button class="task-tab" data-tab="mis">Mis tareas</button>
+        </div>
+
+        <div class="task-list" id="taskList"></div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- config.js con las credenciales de Supabase -->
+  <script src="../Login/config.js"></script>
+
+  <!-- Script principal de la página -->
+  <script src="script.js"></script>
+
+</body>
+</html>
