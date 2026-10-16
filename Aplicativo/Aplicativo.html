@@ -40,7 +40,13 @@
   <div class="app-layout">
 
     <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Handle: línea vertical blanca para arrastrar y cerrar el menú -->
+      <div class="sidebar-drag-handle" id="sidebarDragHandle" aria-label="Arrastrar para cerrar">
+        <span class="drag-line"></span>
+      </div>
+
       <nav class="sidebar-nav">
         <a href="Aplicativo.html" class="nav-item active" data-page="inicio">
           <img src="../Iconos/casa.png" alt="Inicio" class="nav-icon">
@@ -94,7 +100,6 @@
         <div class="empty-state">
           <div class="empty-circle">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Hoja / documento vacío, centrada en el viewBox -->
               <path d="M8 4h6l4 4v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"
                     stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
               <path d="M14 4v4h4"

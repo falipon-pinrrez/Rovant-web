@@ -41,7 +41,6 @@ function renderTareas() {
       <div class="empty-state empty-state-tasks">
         <div class="empty-circle">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Tabla / lista -->
             <rect x="4" y="4" width="16" height="16" rx="2"
                   stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
             <line x1="4" y1="9" x2="20" y2="9"
@@ -50,7 +49,6 @@ function renderTareas() {
                   stroke="currentColor" stroke-width="1.6"/>
             <line x1="10" y1="4" x2="10" y2="20"
                   stroke="currentColor" stroke-width="1.6"/>
-            <!-- Check dentro -->
             <polyline points="12.5 16.5 14 18 17 14.5"
                       stroke="currentColor" stroke-width="1.8"
                       stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -97,7 +95,6 @@ function inicializarTabs() {
    ============================================================ */
 function inicializarNavegacion() {
   document.querySelectorAll(".nav-item").forEach(item => {
-    // Ignoramos el botón de cerrar sesión aquí (tiene su propia lógica)
     if (item.id === "btnCerrarSesion") return;
 
     item.addEventListener("click", () => {
@@ -109,7 +106,6 @@ function inicializarNavegacion() {
 
 /* ============================================================
    CERRAR SESIÓN
-   Limpia el storage y redirige al index.html de la raíz
    ============================================================ */
 function inicializarCerrarSesion() {
   const btnCerrar = document.getElementById("btnCerrarSesion");
@@ -118,19 +114,16 @@ function inicializarCerrarSesion() {
   btnCerrar.addEventListener("click", (e) => {
     e.preventDefault();
 
-    // 1. Limpiar datos de sesión (sessionStorage)
     sessionStorage.removeItem("rovant_user");
     sessionStorage.removeItem("nombreUsuario");
     sessionStorage.removeItem("usuario");
 
-    // 2. Limpiar también localStorage por si acaso
     localStorage.removeItem("rovant_user");
     localStorage.removeItem("rovant_userId");
     localStorage.removeItem("rovant_userUsuario");
     localStorage.removeItem("nombreUsuario");
     localStorage.removeItem("usuario");
 
-    // 3. Redirigir al index.html (está fuera de la carpeta Login)
     window.location.href = "../index.html";
   });
 }
@@ -189,7 +182,6 @@ function renderEquipo(lista) {
    OBTENER USUARIO LOGUEADO
    ============================================================ */
 function obtenerUsuarioLogueado() {
-  // ---- 1. Intento principal: sessionStorage.rovant_user ----
   try {
     const rovantUserStr = sessionStorage.getItem("rovant_user");
     if (rovantUserStr) {
@@ -201,7 +193,6 @@ function obtenerUsuarioLogueado() {
     console.warn("⚠️ Error al parsear rovant_user:", e);
   }
 
-  // ---- 2. Intento en localStorage ----
   try {
     const rovantUserStrLS = localStorage.getItem("rovant_user");
     if (rovantUserStrLS) {
@@ -213,7 +204,6 @@ function obtenerUsuarioLogueado() {
     console.warn("⚠️ Error al parsear rovant_user de localStorage:", e);
   }
 
-  // ---- 3. Fallback: nombre de usuario ----
   const nombreAlternativo =
     sessionStorage.getItem("nombreUsuario") ||
     localStorage.getItem("nombreUsuario");
@@ -237,7 +227,6 @@ async function cargarDatosDesdeSupabase() {
       return;
     }
 
-    // ===== 1. TRAER TODOS LOS USUARIOS =====
     const { data: usuarios, error: errUsuarios } = await supabaseClient
       .from("usuarios_rovant")
       .select("id, nombre, cargo, usuario");
@@ -250,7 +239,6 @@ async function cargarDatosDesdeSupabase() {
     usuariosEquipo = usuarios || [];
     console.log("✅ Usuarios cargados desde Supabase:", usuariosEquipo);
 
-    // ===== 2. IDENTIFICAR AL USUARIO ACTUAL =====
     const usuarioLogueado = obtenerUsuarioLogueado();
 
     if (usuarioLogueado && usuarioLogueado.id) {
@@ -265,7 +253,6 @@ async function cargarDatosDesdeSupabase() {
       usuarioActual = usuariosEquipo.find(u => u.nombre === usuarioLogueado.nombre);
     }
 
-    // Fallback: primer usuario
     let indexActual = 0;
     if (!usuarioActual && usuariosEquipo.length > 0) {
       usuarioActual = usuariosEquipo[0];
@@ -275,15 +262,12 @@ async function cargarDatosDesdeSupabase() {
       indexActual = usuariosEquipo.indexOf(usuarioActual);
     }
 
-    // ===== 3. RENDERIZAR USUARIO ACTUAL =====
     if (usuarioActual) {
       renderUsuarioActual(usuarioActual, indexActual);
     }
 
-    // ===== 4. RENDERIZAR EQUIPO =====
     renderEquipo(usuariosEquipo);
 
-    // ===== 5. TAREAS =====
     tareas = [];
     renderTareas();
 
@@ -297,7 +281,7 @@ async function cargarDatosDesdeSupabase() {
    Se abre al hacer clic en el avatar + nombre + cargo
    ============================================================ */
 function inicializarMenuMovil() {
-  const sidebar = document.querySelector(".sidebar");
+  const sidebar = document.getElementById("sidebar");
   const userInfo = document.getElementById("userInfoToggle");
   const overlay = document.getElementById("menuOverlay");
 
@@ -317,7 +301,6 @@ function inicializarMenuMovil() {
     document.body.style.overflow = "";
   };
 
-  // Abrir/cerrar desde el avatar/nombre del usuario
   if (userInfo) {
     userInfo.addEventListener("click", (e) => {
       if (window.innerWidth <= 1100) {
@@ -327,22 +310,96 @@ function inicializarMenuMovil() {
     });
   }
 
-  // Cerrar al tocar el overlay
   if (overlay) {
     overlay.addEventListener("click", cerrarMenu);
   }
 
-  // Cerrar al hacer clic en cualquier nav-item
   sidebar.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", () => {
       if (window.innerWidth <= 1100) cerrarMenu();
     });
   });
 
-  // Cerrar al salir del rango móvil
   window.addEventListener("resize", () => {
     if (window.innerWidth > 1100) cerrarMenu();
   });
+}
+
+/* ============================================================
+   ARRASTRE DEL MENÚ (swipe para cerrar)
+   Permite cerrar el menú arrastrando el dedo hacia la derecha
+   desde la flechita lateral.
+   ============================================================ */
+function inicializarArrastreMenu() {
+  const sidebar = document.getElementById("sidebar");
+  const handle = document.getElementById("sidebarDragHandle");
+  const overlay = document.getElementById("menuOverlay");
+
+  if (!sidebar || !handle) return;
+
+  let startX = 0;
+  let currentX = 0;
+  let dragging = false;
+  const umbralCierre = 80; // px que hay que arrastrar para cerrar el menú
+
+  const onStart = (e) => {
+    if (window.innerWidth > 1100) return;
+    dragging = true;
+    startX = (e.touches ? e.touches[0].clientX : e.clientX);
+    currentX = startX;
+    sidebar.style.transition = "none";  // sin animación mientras arrastramos
+  };
+
+  const onMove = (e) => {
+    if (!dragging) return;
+    currentX = (e.touches ? e.touches[0].clientX : e.clientX);
+    const delta = currentX - startX;
+
+    // Solo permitimos arrastrar hacia la DERECHA
+    if (delta < 0) return;
+
+    // Desplazamos el sidebar con el dedo
+    sidebar.style.transform = `translateX(${delta}px)`;
+
+    // Oscurecimiento proporcional del overlay
+    if (overlay) {
+      const opacidad = Math.max(0, 0.5 - (delta / 300) * 0.5);
+      overlay.style.opacity = opacidad;
+    }
+
+    // Bloqueamos el scroll mientras arrastra
+    if (e.cancelable) e.preventDefault();
+  };
+
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+
+    const delta = currentX - startX;
+    sidebar.style.transition = "";   // devolvemos la transición
+    sidebar.style.transform = "";    // limpiamos el transform inline
+    if (overlay) overlay.style.opacity = "";
+
+    // Si arrastró lo suficiente → cerramos
+    if (delta > umbralCierre) {
+      sidebar.classList.remove("open");
+      if (overlay) overlay.classList.remove("show");
+      document.body.classList.remove("menu-open");
+      document.body.style.overflow = "";
+    }
+    // Si no, se queda abierto (el CSS lo devuelve a su sitio)
+  };
+
+  // Soporte táctil (móvil)
+  handle.addEventListener("touchstart", onStart, { passive: true });
+  handle.addEventListener("touchmove", onMove, { passive: false });
+  handle.addEventListener("touchend", onEnd);
+  handle.addEventListener("touchcancel", onEnd);
+
+  // Soporte ratón (por si pruebas en desktop con emulación)
+  handle.addEventListener("mousedown", onStart);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onEnd);
 }
 
 /* ============================================================
@@ -353,6 +410,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   inicializarNavegacion();
   inicializarCerrarSesion();
   inicializarMenuMovil();
+  inicializarArrastreMenu();
 
   await cargarDatosDesdeSupabase();
 });
