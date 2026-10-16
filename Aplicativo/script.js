@@ -4,7 +4,7 @@
 let usuarioActual = null;
 let usuariosEquipo = [];
 let tareas = [];
-
+let configuracionUsuario = null;
 let tabActiva = "grupo";
 
 /* ============================================================
@@ -12,12 +12,42 @@ let tabActiva = "grupo";
    ============================================================ */
 function obtenerAvatar(index) {
   const avatares = [
-    "../Iconos/avatar1.png",
-    "../Iconos/avatar2.png",
-    "../Iconos/avatar3.png",
-    "../Iconos/avatar4.png"
+    "../Iconos/Avatar/avatar1.png",
+    "../Iconos/Avatar/avatar2.png",
+    "../Iconos/Avatar/avatar3.png",
+    "../Iconos/Avatar/avatar4.png"
   ];
   return avatares[index % avatares.length];
+}
+
+/* ============================================================
+   OBTENER RUTA DEL AVATAR GUARDADO
+   ============================================================ */
+function obtenerAvatarUsuario(index = 0) {
+  // 1) Si hay configuración guardada con avatar
+  if (configuracionUsuario && configuracionUsuario.avatar_url) {
+    const file = configuracionUsuario.avatar_url;
+
+    if (file.startsWith('../') || file.startsWith('http')) {
+      return file;
+    }
+    return '../Iconos/Avatar/' + file;
+  }
+
+  // 2) Si el login guardó avatar en sessionStorage
+  try {
+    const sesionRaw = sessionStorage.getItem('rovant_user');
+    if (sesionRaw) {
+      const s = JSON.parse(sesionRaw);
+      if (s.avatar_file) return '../Iconos/Avatar/' + s.avatar_file;
+      if (s.avatar_url && (s.avatar_url.startsWith('../') || s.avatar_url.startsWith('http'))) {
+        return s.avatar_url;
+      }
+    }
+  } catch (e) { /* ignorar */ }
+
+  // 3) Fallback: avatar rotativo
+  return obtenerAvatar(index);
 }
 
 /* ============================================================
@@ -35,7 +65,6 @@ function renderTareas() {
     filtradas = tareas.filter(t => t.estado === "En Progreso");
   }
 
-  // ---- Estado vacío: círculo minimalista con tabla + check ----
   if (filtradas.length === 0) {
     contenedor.innerHTML = `
       <div class="empty-state empty-state-tasks">
@@ -136,7 +165,7 @@ function renderUsuarioActual(u, index = 0) {
 
   const nombre = u.nombre || "Usuario";
   const cargo = u.cargo || "Sin cargo";
-  const avatar = obtenerAvatar(index);
+  const avatar = obtenerAvatarUsuario(index);
 
   const headerName = document.getElementById("headerUserName");
   const headerRole = document.getElementById("headerUserRole");
@@ -147,6 +176,8 @@ function renderUsuarioActual(u, index = 0) {
   if (headerRole) headerRole.textContent = cargo;
   if (headerAvatar) headerAvatar.src = avatar;
   if (welcomeName) welcomeName.textContent = nombre;
+
+  console.log("👤 Avatar del header aplicado:", avatar);
 }
 
 /* ============================================================
@@ -164,7 +195,10 @@ function renderEquipo(lista) {
   contenedor.innerHTML = lista.map((u, i) => {
     const nombre = u.nombre || "Usuario";
     const cargo = u.cargo || "Sin cargo";
-    const avatar = obtenerAvatar(i);
+
+    // Si el usuario de la lista es el logueado, usar SU avatar guardado
+    const esYo = usuarioActual && String(u.id) === String(usuarioActual.id);
+    const avatar = esYo ? obtenerAvatarUsuario(i) : obtenerAvatar(i);
 
     return `
       <div class="team-member">
@@ -218,6 +252,42 @@ function obtenerUsuarioLogueado() {
 }
 
 /* ============================================================
+   CARGAR CONFIGURACIÓN DEL USUARIO (avatar guardado)
+   ============================================================ */
+async function cargarConfiguracionUsuario(userId) {
+  if (!userId) return null;
+
+  try {
+    if (typeof supabaseClient === "undefined") {
+      console.warn("⚠️ supabaseClient no está definido");
+      return null;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("configuracion_usuario")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("No se pudo cargar configuración:", error.message);
+      return null;
+    }
+
+    if (data) {
+      console.log("✅ Configuración del usuario cargada:", data);
+      return data;
+    } else {
+      console.log("ℹ️ El usuario no tiene configuración guardada aún");
+      return null;
+    }
+  } catch (e) {
+    console.warn("Error cargando configuración:", e);
+    return null;
+  }
+}
+
+/* ============================================================
    CARGAR DATOS DESDE SUPABASE
    ============================================================ */
 async function cargarDatosDesdeSupabase() {
@@ -227,6 +297,15 @@ async function cargarDatosDesdeSupabase() {
       return;
     }
 
+    // 1) Usuario logueado
+    const usuarioLogueado = obtenerUsuarioLogueado();
+
+    // 2) Configuración (avatar guardado) ANTES de renderizar
+    if (usuarioLogueado && usuarioLogueado.id) {
+      configuracionUsuario = await cargarConfiguracionUsuario(usuarioLogueado.id);
+    }
+
+    // 3) Lista de usuarios del equipo
     const { data: usuarios, error: errUsuarios } = await supabaseClient
       .from("usuarios_rovant")
       .select("id, nombre, cargo, usuario");
@@ -239,8 +318,7 @@ async function cargarDatosDesdeSupabase() {
     usuariosEquipo = usuarios || [];
     console.log("✅ Usuarios cargados desde Supabase:", usuariosEquipo);
 
-    const usuarioLogueado = obtenerUsuarioLogueado();
-
+    // 4) Encontrar usuario actual
     if (usuarioLogueado && usuarioLogueado.id) {
       usuarioActual = usuariosEquipo.find(u => String(u.id) === String(usuarioLogueado.id));
     }
@@ -262,12 +340,15 @@ async function cargarDatosDesdeSupabase() {
       indexActual = usuariosEquipo.indexOf(usuarioActual);
     }
 
+    // 5) Renderizar usuario actual
     if (usuarioActual) {
       renderUsuarioActual(usuarioActual, indexActual);
     }
 
+    // 6) Renderizar equipo
     renderEquipo(usuariosEquipo);
 
+    // 7) Tareas (vacío por ahora)
     tareas = [];
     renderTareas();
 
@@ -278,7 +359,6 @@ async function cargarDatosDesdeSupabase() {
 
 /* ============================================================
    MENÚ DESPLEGABLE MÓVIL
-   Se abre al hacer clic en el avatar + nombre + cargo
    ============================================================ */
 function inicializarMenuMovil() {
   const sidebar = document.getElementById("sidebar");
@@ -327,8 +407,6 @@ function inicializarMenuMovil() {
 
 /* ============================================================
    ARRASTRE DEL MENÚ (swipe para cerrar)
-   Permite cerrar el menú arrastrando el dedo hacia la derecha
-   desde la flechita lateral.
    ============================================================ */
 function inicializarArrastreMenu() {
   const sidebar = document.getElementById("sidebar");
@@ -340,14 +418,14 @@ function inicializarArrastreMenu() {
   let startX = 0;
   let currentX = 0;
   let dragging = false;
-  const umbralCierre = 80; // px que hay que arrastrar para cerrar el menú
+  const umbralCierre = 80;
 
   const onStart = (e) => {
     if (window.innerWidth > 1100) return;
     dragging = true;
     startX = (e.touches ? e.touches[0].clientX : e.clientX);
     currentX = startX;
-    sidebar.style.transition = "none";  // sin animación mientras arrastramos
+    sidebar.style.transition = "none";
   };
 
   const onMove = (e) => {
@@ -355,19 +433,15 @@ function inicializarArrastreMenu() {
     currentX = (e.touches ? e.touches[0].clientX : e.clientX);
     const delta = currentX - startX;
 
-    // Solo permitimos arrastrar hacia la DERECHA
     if (delta < 0) return;
 
-    // Desplazamos el sidebar con el dedo
     sidebar.style.transform = `translateX(${delta}px)`;
 
-    // Oscurecimiento proporcional del overlay
     if (overlay) {
       const opacidad = Math.max(0, 0.5 - (delta / 300) * 0.5);
       overlay.style.opacity = opacidad;
     }
 
-    // Bloqueamos el scroll mientras arrastra
     if (e.cancelable) e.preventDefault();
   };
 
@@ -376,27 +450,23 @@ function inicializarArrastreMenu() {
     dragging = false;
 
     const delta = currentX - startX;
-    sidebar.style.transition = "";   // devolvemos la transición
-    sidebar.style.transform = "";    // limpiamos el transform inline
+    sidebar.style.transition = "";
+    sidebar.style.transform = "";
     if (overlay) overlay.style.opacity = "";
 
-    // Si arrastró lo suficiente → cerramos
     if (delta > umbralCierre) {
       sidebar.classList.remove("open");
       if (overlay) overlay.classList.remove("show");
       document.body.classList.remove("menu-open");
       document.body.style.overflow = "";
     }
-    // Si no, se queda abierto (el CSS lo devuelve a su sitio)
   };
 
-  // Soporte táctil (móvil)
   handle.addEventListener("touchstart", onStart, { passive: true });
   handle.addEventListener("touchmove", onMove, { passive: false });
   handle.addEventListener("touchend", onEnd);
   handle.addEventListener("touchcancel", onEnd);
 
-  // Soporte ratón (por si pruebas en desktop con emulación)
   handle.addEventListener("mousedown", onStart);
   window.addEventListener("mousemove", onMove);
   window.addEventListener("mouseup", onEnd);

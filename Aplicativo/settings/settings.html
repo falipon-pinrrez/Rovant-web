@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración</title>
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="../../Iconos/Logo.png">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="stage-wrapper">
+  <div id="stage">
+
+    <!-- GRAFITI -->
+    <img class="abs grafiti" src="../../Iconos/Grafiti.png" alt="">
+
+    <!-- CABECERA -->
+    <a class="abs back-circle" href="../Aplicativo.html" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#060448" stroke-width="3"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </a>
+    <div class="abs title">Configuración</div>
+    <div class="abs subtitle">Personaliza tu cuenta y preferencias</div>
+    <img class="abs logo-rovant" src="../../Iconos/Rovant.png" alt="Rovant">
+
+    <!-- AVATAR GRANDE + NOMBRE -->
+    <img class="abs user-avatar" id="mainAvatar" src="../../Iconos/usuario.png" alt="Avatar">
+    <div class="abs user-name" id="displayName">Nombre Apellido</div>
+    <div class="abs user-handle" id="displayHandle">@usuario</div>
+
+    <!-- ==================== TARJETA 1: CAMBIAR FOTO ==================== -->
+    <div class="abs card card-1">
+      <div class="row">
+        <img class="row-icon" src="../../Iconos/usuario.png" alt=""
+             style="left:30px; top:30px; width:36px; height:36px;">
+        <div class="row-title" style="left:80px; top:22px;">Cambiar foto de perfil</div>
+        <div class="row-desc"  style="left:80px; top:48px;">Elige una imagen o toma una foto</div>
+      </div>
+      <div class="avatars-wrap" id="avatarsWrap"></div>
+    </div>
+
+    <!-- ==================== TARJETA 2: DATOS DE CUENTA ==================== -->
+    <div class="abs card card-2">
+
+      <!-- Fila Nombre -->
+      <div class="row clickable" data-action="nombre">
+        <img class="row-icon" src="../../Iconos/usuario.png" alt=""
+             style="left:30px; top:27px; width:30px; height:30px;">
+        <div class="row-title" style="left:78px; top:22px;">Nombre</div>
+        <div class="row-desc"  style="left:78px; top:44px;">Puedes cambiar tu nombre de usuario</div>
+        <div class="row-value" style="top:42px;" id="rowNameValue">Nombre Apellido</div>
+        <div class="row-arrow" style="top:42px;">&gt;</div>
+      </div>
+      <div class="divider" style="left:30px; top:87px; width:1080px;"></div>
+
+      <!-- Fila Usuario -->
+      <div class="row clickable" data-action="usuario">
+        <img class="row-icon" src="../../Iconos/usuario.png" alt=""
+             style="left:30px; top:115px; width:30px; height:30px;">
+        <div class="row-title" style="left:78px; top:110px;">Usuario</div>
+        <div class="row-desc"  style="left:78px; top:132px;">Tu nombre de usuario en la plataforma</div>
+        <div class="row-value" style="top:130px;" id="rowHandleValue">@usuario</div>
+        <div class="row-arrow" style="top:130px;">&gt;</div>
+      </div>
+      <div class="divider" style="left:30px; top:175px; width:1080px;"></div>
+
+      <!-- Fila Contraseña -->
+      <div class="row clickable" data-action="password">
+        <img class="row-icon" src="../../Iconos/candado.png" alt=""
+             style="left:30px; top:203px; width:30px; height:30px;">
+        <div class="row-title" style="left:78px; top:198px;">Contraseña</div>
+        <div class="row-desc"  style="left:78px; top:220px;">Cambia tu contraseña para mayor seguridad</div>
+        <div class="row-value" style="top:218px;">******</div>
+        <div class="row-arrow" style="top:218px;">&gt;</div>
+      </div>
+
+    </div>
+
+    <!-- ==================== TARJETA 3: PREFERENCIAS ==================== -->
+    <div class="abs card card-3">
+
+      <!-- Fila Tema -->
+      <div class="row clickable" data-action="tema">
+        <img class="row-icon" src="../../Iconos/paleta.png" alt=""
+             style="left:30px; top:30px; width:30px; height:30px;">
+        <div class="row-title" style="left:78px; top:25px;">Tema</div>
+        <div class="row-desc"  style="left:78px; top:47px;">Cambia el estilo de la app</div>
+        <div class="pill" style="top:45px;">Claro</div>
+        <div class="row-arrow" style="top:45px;">&gt;</div>
+      </div>
+      <div class="divider" style="left:30px; top:95px; width:1080px;"></div>
+
+      <!-- Fila Notificaciones -->
+      <div class="row clickable" data-action="notificaciones">
+        <img class="row-icon" src="../../Iconos/notificacion.png" alt=""
+             style="left:30px; top:115px; width:30px; height:30px;">
+        <div class="row-title" style="left:78px; top:110px;">Notificaciones</div>
+        <div class="row-desc"  style="left:78px; top:132px;">Gestiona permiso de notificaciones</div>
+        <div class="pill" style="top:130px;">Claro</div>
+        <div class="row-arrow" style="top:130px;">&gt;</div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ===== MODAL GENÉRICO ===== -->
+<!-- ============================================================ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <h2 class="modal-title" id="modalTitle">Editar</h2>
+    <p class="modal-subtitle" id="modalSubtitle"></p>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-cancel" id="modalCancel">Cancelar</button>
+      <button type="button" class="modal-btn modal-btn-save" id="modalSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ===== MODAL DE AVISO / ERROR (fondo 90%) ===== -->
+<!-- ============================================================ -->
+<div class="aviso-overlay" id="avisoOverlay">
+  <div class="aviso-box">
+    <div class="aviso-icon" id="avisoIcon">⚠️</div>
+    <h2 class="aviso-title" id="avisoTitle">Aviso</h2>
+    <p class="aviso-message" id="avisoMessage">Mensaje del aviso</p>
+    <button type="button" class="aviso-btn" id="avisoBtn">OK</button>
+  </div>
+</div>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Configuración de Supabase (Login/config.js) -->
+<script src="../../Login/config.js"></script>
+
+<!-- Tu script -->
+<script src="script.js"></script>
+</body>
+</html>
