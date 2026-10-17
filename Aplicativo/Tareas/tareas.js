@@ -43,7 +43,8 @@ function errorDb(e) {
 }
 
 const aTarea = (r, coms) => ({
-  id: r.id, t: r.titulo, tag: r.etiqueta, e: r.estado, av: r.asignados || [],
+  id: r.id, t: r.titulo, tag: r.etiqueta, e: r.estado,
+  av: [...new Set(r.asignados || [])].filter(id => EQUIPO.some(m => String(m.id) === String(id))),
   f: r.fecha || "", d: r.dias || 1,
   com: (coms || []).map(c => ({
     id: c.id, uid: c.user_id, n: c.autor, txt: c.texto,
@@ -206,9 +207,15 @@ async function borrarTarea(id) {
   return true;
 }
 
+function avisoModal(msg) {
+  const el = document.getElementById("avisoModal");
+  el.textContent = msg;
+  el.style.display = msg ? "" : "none";
+}
+
 function renderAsignados() {
   document.getElementById("fAsignados").innerHTML = EQUIPO.map(m => `
-    <button type="button" class="assign-opt ${borrador.av.includes(m.id) ? "on" : ""}" data-m="${m.id}">
+    <button type="button" class="assign-opt ${borrador.av.some(x => String(x) === String(m.id)) ? "on" : ""}" data-m="${m.id}">
       <img src="${esc(m.avatar)}" alt=""> ${esc(m.nombre)}
     </button>`).join("");
 }
@@ -238,6 +245,7 @@ function abrirModal(id) {
   document.getElementById("fDias").value = borrador.d;
   document.getElementById("fNuevoComentario").value = "";
   document.getElementById("btnEliminar").style.display = editando ? "" : "none";
+  avisoModal("");
   renderAsignados();
   renderComentarios();
 
@@ -266,7 +274,11 @@ function inicializarModal() {
   $("fAsignados").addEventListener("click", async e => {
     const b = e.target.closest(".assign-opt");
     if (!b) return;
-    const n = +b.dataset.m;
+    const n = b.dataset.m;
+    if (editando && borrador.av.length === 1 && borrador.av[0] === n) {
+      return avisoModal("La tarea debe tener al menos un miembro asignado.");
+    }
+    avisoModal("");
     borrador.av = borrador.av.includes(n) ? borrador.av.filter(x => x !== n) : [...borrador.av, n];
     renderAsignados();
     if (editando) {
@@ -313,6 +325,7 @@ function inicializarModal() {
     e.preventDefault();
     const titulo = $("fTitulo").value.trim();
     if (!titulo) return;
+    if (!borrador.av.length) return avisoModal("Selecciona al menos un miembro para guardar la tarea.");
     const campos = {
       titulo, etiqueta: $("fTag").value, estado: $("fEstado").value,
       fecha: $("fFecha").value || null,
