@@ -198,8 +198,33 @@ function usuarioComentario() {
   return { uid: u.id || null, n: u.nombre || "Tú", src: u.id ? av(u.id) : AVATARES_DEFECTO[0] };
 }
 
+function confirmar(titulo, texto) {
+  return new Promise(resolve => {
+    const m = document.getElementById("confirmModal");
+    document.getElementById("confirmTitulo").textContent = titulo;
+    document.getElementById("confirmTexto").textContent = texto;
+    const si = document.getElementById("confirmSi"), no = document.getElementById("confirmNo");
+    const fin = r => {
+      m.classList.remove("show"); m.setAttribute("aria-hidden", "true");
+      si.onclick = no.onclick = m.onmousedown = null;
+      document.removeEventListener("keydown", tecla, true);
+      resolve(r);
+    };
+    const tecla = e => {
+      if (e.key === "Escape") { e.stopPropagation(); fin(false); }
+      if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); fin(true); }
+    };
+    si.onclick = () => fin(true);
+    no.onclick = () => fin(false);
+    m.onmousedown = e => { if (e.target === m) fin(false); };
+    document.addEventListener("keydown", tecla, true);
+    m.classList.add("show"); m.setAttribute("aria-hidden", "false");
+    no.focus();
+  });
+}
+
 async function borrarTarea(id) {
-  if (!confirm("¿Eliminar esta tarea?")) return false;
+  if (!await confirmar("Eliminar tarea", "¿Seguro que quieres eliminar esta tarea y sus comentarios? Esta acción no se puede deshacer.")) return false;
   const { error } = await supabaseClient.from("tareas_rovant").delete().eq("id", id);
   if (error) { errorDb(error); return false; }
   TAREAS = TAREAS.filter(x => x.id !== id);
@@ -220,19 +245,75 @@ function renderAsignados() {
     </button>`).join("");
 }
 
+let comEditando = -1;   // índice del comentario en edición
+
 function renderComentarios() {
   const box = document.getElementById("fComentarios");
-  box.innerHTML = borrador.com.map(c => `
-    <div class="comment">
-      <img src="${esc(c.src || av(c.uid))}" alt="">
-      <div><b>${esc(c.n)}</b><small>${esc(c.h)}</small><p>${esc(c.txt)}</p></div>
-    </div>`).join("") || '<span class="comments-empty">Sin comentarios todavía.</span>';
-  box.scrollTop = box.scrollHeight;
+  const yo = (usuarioSesion() || {}).id;
+  box.innerHTML = borrador.com.map((c, i) => {
+    const mio = !!yo && String(c.uid) === String(yo);
+    const cuerpo = i === comEditando
+      ? `<div class="comment-edit">
+           <input type="text" class="ce-input" maxlength="300" value="${esc(c.txt)}">
+           <button type="button" class="ce-btn ce-ok" data-ac="ok" data-i="${i}">Guardar</button>
+           <button type="button" class="ce-btn" data-ac="cancel" data-i="${i}">Cancelar</button>
+         </div>`
+      : `<p>${esc(c.txt)}</p>`;
+    const acciones = mio && i !== comEditando
+      ? `<span class="comment-actions">
+           <button type="button" data-ac="edit" data-i="${i}">Editar</button>
+           <button type="button" data-ac="del" data-i="${i}">Eliminar</button>
+         </span>` : "";
+    return `
+      <div class="comment">
+        <img src="${esc(c.src || av(c.uid))}" alt="">
+        <div class="comment-main"><b>${esc(c.n)}</b><small>${esc(c.h)}</small>${acciones}${cuerpo}</div>
+      </div>`;
+  }).join("") || '<span class="comments-empty">Sin comentarios todavía.</span>';
+  const inp = box.querySelector(".ce-input");
+  if (inp) inp.focus(); else box.scrollTop = box.scrollHeight;
+}
+
+// Mantiene el tablero sincronizado con los cambios hechos en el popup
+function sincronizarComentarios() {
+  const t = TAREAS.find(x => x.id === borrador.id);
+  if (t) t.com = borrador.com.map(c => ({ ...c }));
+  renderTablero();
+}
+
+async function accionComentario(ac, i) {
+  const c = borrador.com[i];
+  if (!c) return;
+  if (ac === "edit") { comEditando = i; return renderComentarios(); }
+  if (ac === "cancel") { comEditando = -1; return renderComentarios(); }
+  if (ac === "ok") {
+    const txt = document.querySelector("#fComentarios .ce-input").value.trim();
+    if (!txt) return;
+    if (editando && c.id) {
+      const { error } = await supabaseClient.from("comentarios_tarea").update({ texto: txt }).eq("id", c.id);
+      if (error) return errorDb(error);
+    }
+    c.txt = txt; comEditando = -1;
+    renderComentarios();
+    if (editando) sincronizarComentarios();
+    return;
+  }
+  if (ac === "del") {
+    if (!await confirmar("Eliminar comentario", "¿Seguro que quieres eliminar este comentario?")) return;
+    if (editando && c.id) {
+      const { error } = await supabaseClient.from("comentarios_tarea").delete().eq("id", c.id);
+      if (error) return errorDb(error);
+    }
+    borrador.com.splice(i, 1); comEditando = -1;
+    renderComentarios();
+    if (editando) sincronizarComentarios();
+  }
 }
 
 function abrirModal(id) {
   const t = id ? TAREAS.find(x => x.id === id) : null;
   editando = !!t;
+  comEditando = -1;
   borrador = t
     ? { ...t, av: [...t.av], com: t.com.map(c => ({ ...c })) }
     : { id: null, t: "", tag: ETIQUETAS[0], e: "iniciar", av: [], f: new Date().toISOString().slice(0, 10), d: 1, com: [] };
@@ -310,6 +391,16 @@ function inicializarModal() {
     inp.value = "";
     renderComentarios();
   };
+  $("fComentarios").addEventListener("click", e => {
+    const b = e.target.closest("button[data-ac]");
+    if (b) accionComentario(b.dataset.ac, +b.dataset.i);
+  });
+  $("fComentarios").addEventListener("keydown", e => {
+    if (e.target.classList.contains("ce-input")) {
+      if (e.key === "Enter") { e.preventDefault(); accionComentario("ok", comEditando); }
+      if (e.key === "Escape") { e.stopPropagation(); accionComentario("cancel", comEditando); }
+    }
+  });
   $("btnComentar").addEventListener("click", comentar);
   $("fNuevoComentario").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); comentar(); } });
 

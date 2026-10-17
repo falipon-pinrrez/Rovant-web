@@ -231,3 +231,28 @@
 }
 .ct-del:hover { background: #FDE1E1; color: #D13B3B; }
 .ct-del svg { width: 14px; height: 14px; }
+
+/* ---------- Editar / eliminar comentarios ---------- */
+.comment-main { flex: 1; min-width: 0; }
+.comment-actions { float: right; display: flex; gap: 8px; }
+.comment-actions button {
+  border: none; background: none; cursor: pointer; font-size: 11px; font-weight: 600; color: #1B60BF;
+}
+.comment-actions button:last-child { color: #D13B3B; }
+.comment-edit { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.comment-edit .ce-input {
+  flex: 1; min-width: 120px; height: 32px; border: 1px solid #C5D3E3; border-radius: 8px;
+  padding: 0 8px; font-size: 13px; outline: none;
+}
+.ce-btn { height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid #C5D3E3; background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ce-ok { background: var(--blue-btn); border-color: var(--blue-btn); color: #fff; }
+
+/* ---------- Popup de confirmación (encima del popup de tarea) ---------- */
+.modal-confirm { z-index: 300; }
+.modal-confirm .modal { width: min(400px, 100%); }
+.confirm-text { font-size: 14px; color: #0C2543; line-height: 1.4; }
+.btn-danger-solid {
+  height: 40px; padding: 0 16px; border: none; border-radius: 10px; cursor: pointer;
+  font-weight: 700; font-size: 13px; background: #D13B3B; color: #fff;
+}
+.btn-danger-solid:hover { filter: brightness(1.08); }

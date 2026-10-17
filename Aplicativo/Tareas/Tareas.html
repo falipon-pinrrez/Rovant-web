@@ -150,6 +150,21 @@
     </div>
   </div>
 
+  <!-- ===== POPUP DE CONFIRMACIÓN ===== -->
+  <div class="modal-backdrop modal-confirm" id="confirmModal" aria-hidden="true">
+    <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitulo">
+      <div class="modal-head"><h2 id="confirmTitulo">Confirmar</h2></div>
+      <div class="modal-body">
+        <p id="confirmTexto" class="confirm-text"></p>
+        <div class="modal-foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn-ghost" id="confirmNo">Cancelar</button>
+          <button type="button" class="btn-danger-solid" id="confirmSi">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="../../Login/config.js"></script>
   <script src="tareas.js"></script>
 </body>
