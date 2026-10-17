@@ -77,6 +77,33 @@ async function cargarTareas() {
   TAREAS = (t.data || []).map(r => aTarea(r, (c.data || []).filter(x => x.tarea_id === r.id)));
 }
 
+/* ---------- Tiempo real (Supabase Realtime por WebSocket) ---------- */
+let refrescoPendiente = null;
+
+function programarRefresco() {
+  clearTimeout(refrescoPendiente);
+  refrescoPendiente = setTimeout(async () => {
+    // no interrumpir un arrastre ni la edición de un comentario
+    if (document.querySelector(".card-ghost") || (borrador && comEditando >= 0)) return programarRefresco();
+    await refrescar();
+    if (borrador && editando) {
+      const t = TAREAS.find(x => x.id === borrador.id);
+      if (!t) { cerrarModal(); aviso("La tarea fue eliminada por otro usuario."); return; }
+      borrador.com = t.com.map(c => ({ ...c }));
+      renderComentarios();
+    }
+  }, 250);
+}
+
+function suscribirTiempoReal() {
+  supabaseClient.channel("tareas-en-vivo")
+    .on("postgres_changes", { event: "*", schema: "public", table: "tareas_rovant" }, programarRefresco)
+    .on("postgres_changes", { event: "*", schema: "public", table: "comentarios_tarea" }, programarRefresco)
+    .subscribe(status => { if (status === "SUBSCRIBED") programarRefresco(); });
+  // al volver a la pestaña, recupera lo perdido mientras estuvo en segundo plano
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) programarRefresco(); });
+}
+
 async function refrescar() {
   try { await cargarTareas(); aviso(""); renderTablero(); } catch (e) { errorDb(e); }
 }
@@ -249,10 +276,8 @@ let comEditando = -1;   // índice del comentario en edición
 
 function renderComentarios() {
   const box = document.getElementById("fComentarios");
-  const yo = (usuarioSesion() || {}).id;
   box.innerHTML = borrador.com.map((c, i) => {
-    // propio, o sin autor registrado (sin sesión al comentar): editable
-    const mio = !c.uid || (!!yo && String(c.uid) === String(yo));
+    const mio = true;   // mismos privilegios para todo el equipo
     const cuerpo = i === comEditando
       ? `<div class="comment-edit">
            <input type="text" class="ce-input" maxlength="300" value="${esc(c.txt)}">
@@ -595,8 +620,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarTareas();
     renderTablero();
   } catch (e) { errorDb(e); }
-  // Sincroniza cambios de otros usuarios
-  setInterval(() => {
-    if (!document.hidden && !borrador && !document.querySelector(".card-ghost")) refrescar();
-  }, 20000);
+  suscribirTiempoReal();
 });
