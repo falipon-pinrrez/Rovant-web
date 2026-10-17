@@ -251,7 +251,8 @@ function renderComentarios() {
   const box = document.getElementById("fComentarios");
   const yo = (usuarioSesion() || {}).id;
   box.innerHTML = borrador.com.map((c, i) => {
-    const mio = !!yo && String(c.uid) === String(yo);
+    // propio, o sin autor registrado (sin sesión al comentar): editable
+    const mio = !c.uid || (!!yo && String(c.uid) === String(yo));
     const cuerpo = i === comEditando
       ? `<div class="comment-edit">
            <input type="text" class="ce-input" maxlength="300" value="${esc(c.txt)}">
@@ -259,15 +260,10 @@ function renderComentarios() {
            <button type="button" class="ce-btn" data-ac="cancel" data-i="${i}">Cancelar</button>
          </div>`
       : `<p>${esc(c.txt)}</p>`;
-    const acciones = mio && i !== comEditando
-      ? `<span class="comment-actions">
-           <button type="button" data-ac="edit" data-i="${i}">Editar</button>
-           <button type="button" data-ac="del" data-i="${i}">Eliminar</button>
-         </span>` : "";
     return `
-      <div class="comment">
+      <div class="comment${mio && i !== comEditando ? " mio" : ""}" data-i="${i}">
         <img src="${esc(c.src || av(c.uid))}" alt="">
-        <div class="comment-main"><b>${esc(c.n)}</b><small>${esc(c.h)}</small>${acciones}${cuerpo}</div>
+        <div class="comment-main"><b>${esc(c.n)}</b><small>${esc(c.h)}</small>${cuerpo}</div>
       </div>`;
   }).join("") || '<span class="comments-empty">Sin comentarios todavía.</span>';
   const inp = box.querySelector(".ce-input");
@@ -279,6 +275,65 @@ function sincronizarComentarios() {
   const t = TAREAS.find(x => x.id === borrador.id);
   if (t) t.com = borrador.com.map(c => ({ ...c }));
   renderTablero();
+}
+
+/* Mantener presionado un comentario propio -> menú Editar / Eliminar */
+function cerrarMenuComentario() {
+  const m = document.getElementById("comMenu");
+  if (m) m.remove();
+}
+
+function abrirMenuComentario(i, x, y) {
+  cerrarMenuComentario();
+  const m = document.createElement("div");
+  m.id = "comMenu";
+  m.className = "com-menu";
+  m.innerHTML = `<button type="button" data-ac="edit">Editar comentario</button>
+                 <button type="button" data-ac="del" class="danger">Eliminar comentario</button>`;
+  document.body.appendChild(m);
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.max(8, Math.min(x, window.innerWidth - r.width - 8)) + "px";
+  m.style.top = Math.max(8, Math.min(y, window.innerHeight - r.height - 8)) + "px";
+  m.addEventListener("click", e => {
+    const b = e.target.closest("button[data-ac]");
+    if (!b) return;
+    cerrarMenuComentario();
+    accionComentario(b.dataset.ac, i);
+  });
+}
+
+function inicializarPulsacionLarga() {
+  const box = document.getElementById("fComentarios");
+  let timer = null, x0 = 0, y0 = 0;
+  const cancelar = () => { clearTimeout(timer); timer = null; };
+
+  box.addEventListener("pointerdown", e => {
+    const c = e.target.closest(".comment.mio");
+    if (!c || e.target.closest("button, input")) return;
+    x0 = e.clientX; y0 = e.clientY;
+    cancelar();
+    timer = setTimeout(() => {
+      timer = null;
+      abrirMenuComentario(+c.dataset.i, x0, y0);
+    }, 450);
+  });
+  box.addEventListener("pointermove", e => {
+    if (timer && Math.hypot(e.clientX - x0, e.clientY - y0) > 8) cancelar();
+  });
+  ["pointerup", "pointerleave"].forEach(ev => box.addEventListener(ev, cancelar));
+  box.addEventListener("scroll", cancelar);
+  // evita el menú contextual del navegador al mantener presionado
+  // (en Android la pulsación larga dispara "contextmenu": se usa también como disparador)
+  box.addEventListener("contextmenu", e => {
+    const c = e.target.closest(".comment.mio");
+    if (!c) return;
+    e.preventDefault();
+    cancelar();
+    abrirMenuComentario(+c.dataset.i, e.clientX, e.clientY);
+  });
+
+  document.addEventListener("pointerdown", e => { if (!e.target.closest("#comMenu")) cerrarMenuComentario(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && document.getElementById("comMenu")) { e.stopPropagation(); cerrarMenuComentario(); } }, true);
 }
 
 async function accionComentario(ac, i) {
@@ -401,6 +456,7 @@ function inicializarModal() {
       if (e.key === "Escape") { e.stopPropagation(); accionComentario("cancel", comEditando); }
     }
   });
+  inicializarPulsacionLarga();
   $("btnComentar").addEventListener("click", comentar);
   $("fNuevoComentario").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); comentar(); } });
 
