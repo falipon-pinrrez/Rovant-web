@@ -4,8 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rovant</title>
+  
+  <!-- Favicon -->
   <link rel="icon" type="image/png" href="Iconos/Logo.png">
+  
+  <!-- Estilos -->
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Cliente de Supabase (CDN oficial) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="pantalla">
@@ -50,7 +57,8 @@
         con más seguridad y control.
       </p>
 
-      <a href="#" class="btn-descarga">
+      <!-- BOTÓN DE DESCARGA (Con el ID que usa el JavaScript) -->
+      <a href="#" class="btn-descarga" id="btnDescargarMain">
         <img src="Iconos/Android.png" alt="Android" class="icono-android">
         <span>Descargar APK</span>
         <img src="Iconos/descargas.png" alt="descargar" class="icono-descarga">
@@ -60,6 +68,11 @@
     </main>
   </div>
 
+  <!-- 1. Cargamos las credenciales de Supabase primero -->
+  <script src="Login/config.js"></script>
+  
+  <!-- 2. Cargamos la lógica de la página -->
   <script src="script.js"></script>
+
 </body>
 </html>

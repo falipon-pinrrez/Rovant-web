@@ -31,31 +31,120 @@ function avatarDeUsuario(userId, index = 0) {
    OBTENER RUTA DEL AVATAR GUARDADO
    ============================================================ */
 function obtenerAvatarUsuario(index = 0) {
-  // 1) Si hay configuración guardada con avatar
   if (configuracionUsuario && configuracionUsuario.avatar_url) {
     const file = configuracionUsuario.avatar_url;
-
-    if (file.startsWith('../') || file.startsWith('http')) {
-      return file;
-    }
+    if (file.startsWith('../') || file.startsWith('http')) return file;
     return '../Iconos/Avatar/' + file;
   }
-
-  // 2) Si el login guardó avatar en sessionStorage
   try {
     const sesionRaw = sessionStorage.getItem('rovant_user');
     if (sesionRaw) {
       const s = JSON.parse(sesionRaw);
       if (s.avatar_file) return '../Iconos/Avatar/' + s.avatar_file;
-      if (s.avatar_url && (s.avatar_url.startsWith('../') || s.avatar_url.startsWith('http'))) {
-        return s.avatar_url;
-      }
+      if (s.avatar_url && (s.avatar_url.startsWith('../') || s.avatar_url.startsWith('http'))) return s.avatar_url;
     }
   } catch (e) { /* ignorar */ }
-
-  // 3) Fallback: avatar rotativo
   return obtenerAvatar(index);
 }
+
+/* ============================================================
+   CARGAR Y MOSTRAR APKS CON BOTÓN DE SELECCIÓN
+   ============================================================ */
+async function cargarApksDisponibles() {
+  const contenedor = document.getElementById('listaApks');
+  if (!contenedor || typeof supabaseClient === "undefined") return;
+
+  try {
+    const { data: apks, error } = await supabaseClient
+      .from('apk_versions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (!apks || apks.length === 0) {
+      contenedor.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-circle">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 4h6l4 4v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M14 4v4h4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="empty-text">No hay APKs subidos aún</p>
+        </div>
+      `;
+      return;
+    }
+
+    contenedor.innerHTML = apks.map(apk => {
+      const fecha = new Date(apk.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+      const sizeMB = apk.file_size ? (apk.file_size / (1024 * 1024)).toFixed(1) + ' MB' : 'N/A';
+      const esActivo = apk.is_active; 
+
+      // Si está activo, mostramos un botón verde. Si no, uno azul.
+      const btnClass = esActivo ? 'btn-selected' : 'btn-select';
+      const btnText = esActivo ? 'Seleccionado ✓' : 'Seleccionar';
+
+      return `
+        <div class="apk-item ${esActivo ? 'apk-active' : ''}">
+          <div class="apk-info">
+            <span class="apk-version">${apk.version}</span>
+            <span class="apk-meta">${sizeMB} • ${fecha}</span>
+          </div>
+          <button class="${btnClass}" onclick="seleccionarApk(${apk.id})" ${esActivo ? 'disabled' : ''}>
+            ${btnText}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error("Error al cargar APKs:", error);
+    contenedor.innerHTML = `<p style="text-align:center; color:#D32F2F; padding:20px;">Error al cargar los APKs.</p>`;
+  }
+}
+
+/* ============================================================
+   SELECCIONAR APK PARA DESCARGA
+   ============================================================ */
+async function seleccionarApk(idSeleccionado) {
+  try {
+    // 1. Quitar la selección a TODOS los apks
+    await supabaseClient
+      .from('apk_versions')
+      .update({ is_active: false })
+      .neq('id', 0); // Afecta a todos
+
+    // 2. Poner el seleccionado como activo
+    await supabaseClient
+      .from('apk_versions')
+      .update({ is_active: true })
+      .eq('id', idSeleccionado);
+
+    // 3. Mostrar el modal de éxito
+    const overlay = document.getElementById('modalOverlay');
+    if (overlay) overlay.classList.add('show');
+
+    // 4. Recargar la lista para pintar el botón verde
+    await cargarApksDisponibles();
+
+  } catch (error) {
+    console.error("Error al seleccionar APK:", error);
+    alert("Hubo un error al seleccionar el APK.");
+  }
+}
+
+// Cerrar el modal
+document.addEventListener("DOMContentLoaded", () => {
+  const closeBtn = document.getElementById('modalCloseBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      const overlay = document.getElementById('modalOverlay');
+      if (overlay) overlay.classList.remove('show');
+    });
+  }
+});
 
 /* ============================================================
    RENDER DE TAREAS
@@ -71,9 +160,6 @@ const ESTADOS_TAREA = {
   terminada: { texto: "Terminada",   badge: "badge-done" }
 };
 
-/* ============================================================
-   CARGAR TAREAS DESDE SUPABASE (tabla tareas_rovant)
-   ============================================================ */
 async function cargarTareasDesdeSupabase() {
   const { data, error } = await supabaseClient
     .from("tareas_rovant")
@@ -125,17 +211,11 @@ function renderTareas() {
       <div class="empty-state empty-state-tasks">
         <div class="empty-circle">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="4" width="16" height="16" rx="2"
-                  stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-            <line x1="4" y1="9" x2="20" y2="9"
-                  stroke="currentColor" stroke-width="1.6"/>
-            <line x1="4" y1="14" x2="20" y2="14"
-                  stroke="currentColor" stroke-width="1.6"/>
-            <line x1="10" y1="4" x2="10" y2="20"
-                  stroke="currentColor" stroke-width="1.6"/>
-            <polyline points="12.5 16.5 14 18 17 14.5"
-                      stroke="currentColor" stroke-width="1.8"
-                      stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <line x1="4" y1="9" x2="20" y2="9" stroke="currentColor" stroke-width="1.6"/>
+            <line x1="4" y1="14" x2="20" y2="14" stroke="currentColor" stroke-width="1.6"/>
+            <line x1="10" y1="4" x2="10" y2="20" stroke="currentColor" stroke-width="1.6"/>
+            <polyline points="12.5 16.5 14 18 17 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
           </svg>
         </div>
         <p class="empty-text">No hay tareas</p>
@@ -180,7 +260,6 @@ function inicializarTabs() {
 function inicializarNavegacion() {
   document.querySelectorAll(".nav-item").forEach(item => {
     if (item.id === "btnCerrarSesion") return;
-
     item.addEventListener("click", () => {
       document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
       item.classList.add("active");
@@ -197,7 +276,6 @@ function inicializarCerrarSesion() {
 
   btnCerrar.addEventListener("click", (e) => {
     e.preventDefault();
-
     sessionStorage.removeItem("rovant_user");
     sessionStorage.removeItem("nombreUsuario");
     sessionStorage.removeItem("usuario");
@@ -231,8 +309,6 @@ function renderUsuarioActual(u, index = 0) {
   if (headerRole) headerRole.textContent = cargo;
   if (headerAvatar) headerAvatar.src = avatar;
   if (welcomeName) welcomeName.textContent = nombre;
-
-  console.log("👤 Avatar del header aplicado:", avatar);
 }
 
 /* ============================================================
@@ -250,8 +326,6 @@ function renderEquipo(lista) {
   contenedor.innerHTML = lista.map((u, i) => {
     const nombre = u.nombre || "Usuario";
     const cargo = u.cargo || "Sin cargo";
-
-    // Si el usuario de la lista es el logueado, usar SU avatar guardado
     const esYo = usuarioActual && String(u.id) === String(usuarioActual.id);
     const avatar = esYo ? obtenerAvatarUsuario(i) : avatarDeUsuario(u.id, i);
 
@@ -273,36 +347,16 @@ function renderEquipo(lista) {
 function obtenerUsuarioLogueado() {
   try {
     const rovantUserStr = sessionStorage.getItem("rovant_user");
-    if (rovantUserStr) {
-      const userObj = JSON.parse(rovantUserStr);
-      console.log("✅ Usuario logueado encontrado:", userObj);
-      return userObj;
-    }
-  } catch (e) {
-    console.warn("⚠️ Error al parsear rovant_user:", e);
-  }
+    if (rovantUserStr) return JSON.parse(rovantUserStr);
+  } catch (e) { console.warn("⚠️ Error al parsear rovant_user:", e); }
 
   try {
     const rovantUserStrLS = localStorage.getItem("rovant_user");
-    if (rovantUserStrLS) {
-      const userObj = JSON.parse(rovantUserStrLS);
-      console.log("✅ Usuario logueado encontrado (localStorage):", userObj);
-      return userObj;
-    }
-  } catch (e) {
-    console.warn("⚠️ Error al parsear rovant_user de localStorage:", e);
-  }
+    if (rovantUserStrLS) return JSON.parse(rovantUserStrLS);
+  } catch (e) { console.warn("⚠️ Error al parsear rovant_user de localStorage:", e); }
 
-  const nombreAlternativo =
-    sessionStorage.getItem("nombreUsuario") ||
-    localStorage.getItem("nombreUsuario");
-
-  if (nombreAlternativo) {
-    console.log("✅ Usuario encontrado por nombre alternativo:", nombreAlternativo);
-    return { nombre: nombreAlternativo };
-  }
-
-  console.warn("⚠️ No se encontró usuario logueado en storage");
+  const nombreAlternativo = sessionStorage.getItem("nombreUsuario") || localStorage.getItem("nombreUsuario");
+  if (nombreAlternativo) return { nombre: nombreAlternativo };
   return null;
 }
 
@@ -310,83 +364,47 @@ function obtenerUsuarioLogueado() {
    CARGAR CONFIGURACIÓN DEL USUARIO (avatar guardado)
    ============================================================ */
 async function cargarConfiguracionUsuario(userId) {
-  if (!userId) return null;
-
+  if (!userId || typeof supabaseClient === "undefined") return null;
   try {
-    if (typeof supabaseClient === "undefined") {
-      console.warn("⚠️ supabaseClient no está definido");
-      return null;
-    }
-
-    const { data, error } = await supabaseClient
-      .from("configuracion_usuario")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (error) {
-      console.warn("No se pudo cargar configuración:", error.message);
-      return null;
-    }
-
-    if (data) {
-      console.log("✅ Configuración del usuario cargada:", data);
-      return data;
-    } else {
-      console.log("ℹ️ El usuario no tiene configuración guardada aún");
-      return null;
-    }
-  } catch (e) {
-    console.warn("Error cargando configuración:", e);
-    return null;
-  }
+    const { data, error } = await supabaseClient.from("configuracion_usuario").select("*").eq("user_id", userId).maybeSingle();
+    if (error) { console.warn("No se pudo cargar configuración:", error.message); return null; }
+    return data;
+  } catch (e) { return null; }
 }
 
 /* ============================================================
-   CARGAR DATOS DESDE SUPABASE
+   CARGAR DATOS DESDE SUPABASE (INICIO)
    ============================================================ */
 async function cargarDatosDesdeSupabase() {
   try {
-    if (typeof supabaseClient === "undefined") {
-      console.warn("⚠️ supabaseClient no está definido. ¿Cargaste config.js?");
-      return;
-    }
+    if (typeof supabaseClient === "undefined") return;
 
     // 1) Usuario logueado
     const usuarioLogueado = obtenerUsuarioLogueado();
-
-    // 2) Configuración (avatar guardado) ANTES de renderizar
     if (usuarioLogueado && usuarioLogueado.id) {
       configuracionUsuario = await cargarConfiguracionUsuario(usuarioLogueado.id);
     }
 
-    // 3) Lista de usuarios del equipo
+    // 2) Lista de usuarios
     const { data: usuarios, error: errUsuarios } = await supabaseClient
       .from("usuarios_rovant")
       .select("id, nombre, cargo, usuario");
 
-    if (errUsuarios) {
-      console.error("Error al traer usuarios:", errUsuarios);
-      return;
-    }
+    if (errUsuarios) { console.error("Error al traer usuarios:", errUsuarios); return; }
 
     usuariosEquipo = usuarios || [];
 
-    // Avatares guardados de todo el equipo
-    const { data: cfgs } = await supabaseClient
-      .from("configuracion_usuario").select("user_id, avatar_url");
+    // 3) Avatares de todos los usuarios
+    const { data: cfgs } = await supabaseClient.from("configuracion_usuario").select("user_id, avatar_url");
     (cfgs || []).forEach(c => { avataresEquipo[c.user_id] = c.avatar_url; });
-    console.log("✅ Usuarios cargados desde Supabase:", usuariosEquipo);
 
     // 4) Encontrar usuario actual
     if (usuarioLogueado && usuarioLogueado.id) {
       usuarioActual = usuariosEquipo.find(u => String(u.id) === String(usuarioLogueado.id));
     }
-
     if (!usuarioActual && usuarioLogueado && usuarioLogueado.usuario) {
       usuarioActual = usuariosEquipo.find(u => u.usuario === usuarioLogueado.usuario);
     }
-
     if (!usuarioActual && usuarioLogueado && usuarioLogueado.nombre) {
       usuarioActual = usuariosEquipo.find(u => u.nombre === usuarioLogueado.nombre);
     }
@@ -394,23 +412,18 @@ async function cargarDatosDesdeSupabase() {
     let indexActual = 0;
     if (!usuarioActual && usuariosEquipo.length > 0) {
       usuarioActual = usuariosEquipo[0];
-      indexActual = 0;
-      console.warn("⚠️ No se encontró coincidencia, usando el primero:", usuarioActual.nombre);
     } else if (usuarioActual) {
       indexActual = usuariosEquipo.indexOf(usuarioActual);
     }
 
-    // 5) Renderizar usuario actual
-    if (usuarioActual) {
-      renderUsuarioActual(usuarioActual, indexActual);
-    }
-
-    // 6) Renderizar equipo
+    // 5) Renderizar
+    if (usuarioActual) renderUsuarioActual(usuarioActual, indexActual);
     renderEquipo(usuariosEquipo);
 
-    // 7) Tareas desde Supabase
+    // 6) Tareas y APKs
     await cargarTareasDesdeSupabase();
     renderTareas();
+    await cargarApksDisponibles();
 
   } catch (err) {
     console.error("Error general al cargar datos:", err);
@@ -424,7 +437,6 @@ function inicializarMenuMovil() {
   const sidebar = document.getElementById("sidebar");
   const userInfo = document.getElementById("userInfoToggle");
   const overlay = document.getElementById("menuOverlay");
-
   if (!sidebar) return;
 
   const abrirMenu = () => {
@@ -450,9 +462,7 @@ function inicializarMenuMovil() {
     });
   }
 
-  if (overlay) {
-    overlay.addEventListener("click", cerrarMenu);
-  }
+  if (overlay) overlay.addEventListener("click", cerrarMenu);
 
   sidebar.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", () => {
@@ -472,7 +482,6 @@ function inicializarArrastreMenu() {
   const sidebar = document.getElementById("sidebar");
   const handle = document.getElementById("sidebarDragHandle");
   const overlay = document.getElementById("menuOverlay");
-
   if (!sidebar || !handle) return;
 
   let startX = 0;
@@ -492,23 +501,19 @@ function inicializarArrastreMenu() {
     if (!dragging) return;
     currentX = (e.touches ? e.touches[0].clientX : e.clientX);
     const delta = currentX - startX;
-
     if (delta < 0) return;
 
     sidebar.style.transform = `translateX(${delta}px)`;
-
     if (overlay) {
       const opacidad = Math.max(0, 0.5 - (delta / 300) * 0.5);
       overlay.style.opacity = opacidad;
     }
-
     if (e.cancelable) e.preventDefault();
   };
 
   const onEnd = () => {
     if (!dragging) return;
     dragging = false;
-
     const delta = currentX - startX;
     sidebar.style.transition = "";
     sidebar.style.transform = "";
@@ -526,7 +531,6 @@ function inicializarArrastreMenu() {
   handle.addEventListener("touchmove", onMove, { passive: false });
   handle.addEventListener("touchend", onEnd);
   handle.addEventListener("touchcancel", onEnd);
-
   handle.addEventListener("mousedown", onStart);
   window.addEventListener("mousemove", onMove);
   window.addEventListener("mouseup", onEnd);
