@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rovant - Tareas</title>
+
+<link rel="icon" type="image/png" href="../../Iconos/Logo.png">
+
+<!-- Estilos base reciclados (header + sidebar) y estilos propios de Tareas -->
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="tareas.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="page-tareas">
+
+  <!-- ============ HEADER (reciclado) ============ -->
+  <header class="header">
+    <div class="header-title">
+      <img src="../../Iconos/tarea.png" alt="" class="header-title-icon">
+      <div class="header-title-text">
+        <h1>Tareas</h1>
+        <p>Organiza, asigna y da seguimiento a las tareas de tu equipo.</p>
+      </div>
+    </div>
+
+    <div class="user-info" id="userInfoToggle">
+      <img src="../../Iconos/Avatar/avatar1.png" alt="Usuario" class="user-avatar" id="headerAvatar">
+      <div class="user-text">
+        <span class="user-name" id="headerUserName">Juan Pérez</span>
+        <span class="user-role" id="headerUserRole">Administrador</span>
+      </div>
+      <svg class="user-chevron" id="userChevron" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+  </header>
+
+  <div class="menu-overlay" id="menuOverlay"></div>
+
+  <!-- ===== SIDEBAR (reciclado) ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-drag-handle" id="sidebarDragHandle" aria-label="Arrastrar para cerrar">
+      <span class="drag-line"></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="../Aplicativo.html" class="nav-item" data-page="inicio">
+        <img src="../../Iconos/casa.png" alt="Inicio" class="nav-icon">
+        <span class="nav-text">Inicio</span>
+      </a>
+      <a href="../Upgrade/Upgrade.html" class="nav-item" data-page="upgrade">
+        <img src="../../Iconos/ventana.png" alt="Upgrade APK" class="nav-icon">
+        <span class="nav-text">Upgrade APK</span>
+      </a>
+      <a href="Tareas.html" class="nav-item active" data-page="tareas">
+        <img src="../../Iconos/tarea.png" alt="Tareas" class="nav-icon">
+        <span class="nav-text">Tareas</span>
+      </a>
+      <a href="../Equipo/Equipo.html" class="nav-item" data-page="equipo">
+        <img src="../../Iconos/equipo.png" alt="Equipo" class="nav-icon">
+        <span class="nav-text">Equipo</span>
+      </a>
+      <a href="../settings/settings.html" class="nav-item" data-page="setting">
+        <img src="../../Iconos/settings.png" alt="Setting" class="nav-icon">
+        <span class="nav-text">Setting</span>
+      </a>
+
+      <a href="#" class="nav-item" data-page="cerrar" id="btnCerrarSesion">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span class="nav-text">Cerrar Sesión</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <img src="../../Iconos/Rovant-blanco.png" alt="Rovant" class="footer-logo">
+      <p class="footer-text">Movilidad control y<br>productividad en un solo lugar</p>
+    </div>
+  </aside>
+
+  <div class="app-layout">
+
+    <!-- ===== CONTENIDO: TABLERO DE TAREAS ===== -->
+    <main class="main-content tareas-main">
+
+      <div class="tareas-top">
+        <button class="btn-primary" id="btnNuevaTarea" type="button">
+          <span class="plus">+</span> Nueva tarea
+        </button>
+      </div>
+
+      <!-- Tablero: las columnas se generan en tareas.js -->
+      <section class="board" id="board"></section>
+    </main>
+
+  </div>
+
+  <!-- ===== POPUP CENTRAL (nueva tarea / detalle) ===== -->
+  <div class="modal-backdrop" id="modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+      <div class="modal-head">
+        <h2 id="modalTitulo">Nueva tarea</h2>
+        <button type="button" class="modal-x" id="modalCerrar" aria-label="Cerrar">&times;</button>
+      </div>
+      <form id="formTarea" class="modal-body" autocomplete="off">
+        <label class="f-field">Título
+          <input type="text" id="fTitulo" maxlength="80" placeholder="Nombre de la tarea" required>
+        </label>
+        <div class="f-grid">
+          <label class="f-field">Etiqueta
+            <select id="fTag"></select>
+          </label>
+          <label class="f-field">Estado
+            <select id="fEstado"></select>
+          </label>
+          <label class="f-field">Fecha
+            <input type="date" id="fFecha">
+          </label>
+          <label class="f-field">Duración (días)
+            <input type="number" id="fDias" min="1" max="365" value="1">
+          </label>
+        </div>
+
+        <div class="f-field">Asignados
+          <div class="assign-list" id="fAsignados"></div>
+        </div>
+
+        <div class="f-field">Comentarios
+          <div class="comments" id="fComentarios"></div>
+          <div class="comment-new">
+            <input type="text" id="fNuevoComentario" maxlength="300" placeholder="Escribe un comentario...">
+            <button type="button" class="btn-primary" id="btnComentar">Enviar</button>
+          </div>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="btn-danger" id="btnEliminar">Eliminar</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn-ghost" id="btnCancelar">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btnGuardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../Login/config.js"></script>
+  <script src="tareas.js"></script>
+</body>
+</html>
