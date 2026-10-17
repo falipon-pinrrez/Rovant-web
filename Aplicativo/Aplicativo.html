@@ -93,20 +93,22 @@
       <div class="card card-apk">
         <div class="card-header">
           <img src="../Iconos/Android.png" alt="Android" class="card-icon">
-          <h2 class="card-title">Seleccionar APK</h2>
+          <h2 class="card-title">Selecciona el APK para Descargar</h2>
         </div>
 
-        <!-- Estado vacío: círculo con hoja vacía + texto -->
-        <div class="empty-state">
-          <div class="empty-circle">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 4h6l4 4v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"
-                    stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-              <path d="M14 4v4h4"
-                    stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-            </svg>
+        <!-- CONTENEDOR DINÁMICO PARA LOS APKS -->
+        <div id="listaApks" class="lista-apks-container">
+          <div class="empty-state">
+            <div class="empty-circle">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 4h6l4 4v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"
+                      stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M14 4v4h4"
+                      stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p class="empty-text">Cargando APKs...</p>
           </div>
-          <p class="empty-text">No hay APKs</p>
         </div>
       </div>
     </main>
@@ -152,6 +154,16 @@
 
     </aside>
 
+  </div>
+
+  <!-- MODAL DE NOTIFICACIÓN -->
+  <div class="custom-modal-overlay" id="modalOverlay">
+    <div class="custom-modal-content">
+      <div class="modal-icon">✅</div>
+      <h3 class="modal-title">¡APK Seleccionado!</h3>
+      <p class="modal-text">Este APK ahora es el que se descargará desde la página de inicio.</p>
+      <button class="modal-btn" id="modalCloseBtn">Entendido</button>
+    </div>
   </div>
 
   <!-- config.js con las credenciales de Supabase -->

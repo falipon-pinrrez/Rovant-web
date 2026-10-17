@@ -43,7 +43,7 @@ html, body {
   z-index: 102;
 }
 
-/* MENÚ PC — flex con espacio uniforme entre botones */
+/* MENÚ PC */
 .menu-pc {
   position: absolute;
   top: 0;
@@ -79,7 +79,7 @@ html, body {
   transition: left .25s ease, width .25s ease;
 }
 
-/* 🔹 BOTÓN "Iniciar sesión" en PC */
+/* BOTÓN "Iniciar sesión" PC */
 .btn-login-pc {
   background: #1776F7;
   color: #ffffff !important;
@@ -98,12 +98,12 @@ html, body {
   transform: scale(0.97);
 }
 
-/* MENÚ HAMBURGUESA — oculto por defecto en PC */
+/* MENÚ HAMBURGUESA */
 .menu-hamburguesa {
   position: absolute;
   cursor: pointer;
   z-index: 103;
-  display: none; /* 🔹 Oculto en PC */
+  display: none;
 }
 
 /* ============================
@@ -122,12 +122,10 @@ html, body {
   position: absolute;
 }
 
-/* Logo principal */
 .logo-principal {
   object-fit: contain;
 }
 
-/* Texto principal */
 .texto-principal {
   color: #000000;
   font-weight: 500;
@@ -144,7 +142,6 @@ html, body {
   font-weight: 700;
 }
 
-/* Subtítulo */
 .subtitulo {
   color: #9DA6B6;
   font-weight: 500;
@@ -163,6 +160,8 @@ html, body {
   font-weight: 500;
   transition: transform .2s, box-shadow .2s;
   cursor: pointer;
+  border: none;
+  outline: none;
 }
 
 .btn-descarga:hover {
@@ -183,7 +182,7 @@ html, body {
 }
 
 /* ============================
-   MENÚ MÓVIL (desplegable)
+   MENÚ MÓVIL
 ============================ */
 .menu-movil {
   display: none;
@@ -216,7 +215,6 @@ html, body {
   border-bottom-color: #3382F3;
 }
 
-/* 🔹 BOTÓN "Iniciar sesión" en MÓVIL */
 .btn-login-movil {
   display: block;
   margin-top: 12px;
@@ -239,11 +237,10 @@ html, body {
 }
 
 /* ============================
-   📱 MEDIA QUERY: SOLO MÓVIL
-   Aquí SÍ se muestra la hamburguesa
+   MEDIA QUERY: MÓVIL
 ============================ */
 @media (max-width: 768px) {
   .menu-hamburguesa {
-    display: block; /* 🔹 Visible solo en móvil */
+    display: block;
   }
 }

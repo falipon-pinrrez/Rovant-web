@@ -563,6 +563,7 @@ img[src*="equipo.png"].rc-icon {
 .badge-progress { background: #F5A623; }
 .badge-done     { background: #27AE60; }
 .badge-pending  { background: #EB5757; }
+.badge-review   { background: #8B5CF6; }
 
 .task-item .task-meta {
   display: flex;
@@ -590,6 +591,166 @@ img[src*="equipo.png"].rc-icon {
   object-fit: cover;
   background: #ddd;
   margin-left: clamp(4px, 0.5vw, 10px);
+}
+
+/* ============================================================
+   NUEVOS ESTILOS: LISTA DE APKS Y BOTÓN DE SELECCIÓN
+   ============================================================ */
+.lista-apks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.apk-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #F8FBFE;
+  border: 1px solid #E5EDF5;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.apk-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(23, 118, 247, 0.1);
+  border-color: #1776F7;
+}
+
+.apk-item.apk-active {
+  border: 2px solid #27AE60;
+  background: #F8FFF9;
+}
+
+.apk-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.apk-version {
+  font-size: 16px;
+  font-weight: bold;
+  color: #0C2543;
+}
+
+.apk-meta {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Botones de selección */
+.btn-select {
+  background: transparent;
+  color: #1776F7;
+  border: 2px solid #1776F7;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-select:hover {
+  background: #EFF7FE;
+}
+
+.btn-selected {
+  background: #E5F9ED;
+  color: #27AE60;
+  border: 2px solid #27AE60;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   MODAL PERSONALIZADO
+   ============================================================ */
+.custom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8); 
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.custom-modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.custom-modal-content {
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: scale(0.8) translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-modal-overlay.show .custom-modal-content {
+  transform: scale(1) translateY(0);
+}
+
+.modal-icon {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+
+.modal-title {
+  font-size: 24px;
+  color: #0C2543;
+  margin-bottom: 8px;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.modal-text {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.modal-btn {
+  background: #1776F7;
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  width: 100%;
+}
+
+.modal-btn:hover {
+  background: #105cc7;
+}
+
+.modal-btn:active {
+  transform: scale(0.98);
 }
 
 /* ============================================================
@@ -683,14 +844,14 @@ img[src*="equipo.png"].rc-icon {
   .sidebar-drag-handle {
     display: flex;
     position: absolute;
-    left: 8px;                    /* pegado al borde interior izquierdo */
+    left: 8px;
     top: 50%;
     transform: translateY(-50%);
     width: 16px;
     height: 70px;
     align-items: center;
     justify-content: center;
-    background: transparent;      /* sin fondo */
+    background: transparent;
     border-radius: 0;
     cursor: grab;
     touch-action: none;
@@ -713,8 +874,8 @@ img[src*="equipo.png"].rc-icon {
   /* Línea vertical blanca gruesa */
   .sidebar-drag-handle .drag-line {
     display: block;
-    width: 2px;                   /* grosor de la línea */
-    height: 35px;                 /* largo de la línea */
+    width: 2px;
+    height: 35px;
     background: #FFFFFF;
     border-radius: 4px;
     box-shadow: 0 0 6px rgba(255, 255, 255, 0.35);
@@ -829,6 +990,18 @@ img[src*="equipo.png"].rc-icon {
   }
 
   .card-apk { min-height: 250px; }
+  
+  /* Ajuste para que los apks en movil se vean bien */
+  .apk-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .btn-select, .btn-selected {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 /* ============================================================
@@ -861,4 +1034,4 @@ img[src*="equipo.png"].rc-icon {
   }
 
   .task-list { max-height: 260px; }
-}.badge-review { background: #8B5CF6; }
+}
