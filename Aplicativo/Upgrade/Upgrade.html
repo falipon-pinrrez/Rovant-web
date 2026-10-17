@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rovant - Upgrade APK</title>
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="../../Iconos/Logo.png">
+<link rel="stylesheet" href="style.css">
+
+<!-- Cliente de Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-drag-handle" id="sidebarDragHandle">
+        <span class="drag-line"></span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../Aplicativo.html" class="nav-item" data-page="inicio">
+          <img src="../../Iconos/casa.png" alt="Inicio" class="nav-icon">
+          <span class="nav-text">Inicio</span>
+        </a>
+        <a href="Upgrade.html" class="nav-item active" data-page="upgrade">
+          <img src="../../Iconos/ventana.png" alt="Upgrade APK" class="nav-icon">
+          <span class="nav-text">Upgrade APK</span>
+        </a>
+        <a href="../Tareas/Tareas.html" class="nav-item" data-page="tareas">
+          <img src="../../Iconos/tarea.png" alt="Tareas" class="nav-icon">
+          <span class="nav-text">Tareas</span>
+        </a>
+        <a href="../Equipo/Equipo.html" class="nav-item" data-page="equipo">
+          <img src="../../Iconos/equipo.png" alt="Equipo" class="nav-icon">
+          <span class="nav-text">Equipo</span>
+        </a>
+        <a href="../settings/settings.html" class="nav-item" data-page="setting">
+          <img src="../../Iconos/settings.png" alt="Setting" class="nav-icon">
+          <span class="nav-text">Setting</span>
+        </a>
+        <a href="#" class="nav-item" data-page="cerrar" id="btnCerrarSesion">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span class="nav-text">Cerrar Sesión</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <img src="../../Iconos/Rovant-blanco.png" alt="Rovant" class="footer-logo">
+        <p class="footer-text">Movilidad control y<br>productividad en un solo lugar</p>
+      </div>
+    </aside>
+
+    <!-- ===== CONTENIDO CENTRAL ===== -->
+    <main class="main-content">
+      <div class="user-info" id="userInfoToggle">
+        <img src="../../Iconos/Avatar/avatar1.png" alt="Usuario" class="user-avatar" id="headerAvatar">
+        <div class="user-text">
+          <span class="user-name" id="headerUserName">Cargando...</span>
+          <span class="user-role" id="headerUserRole">...</span>
+        </div>
+        <svg class="user-chevron" id="userChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      <div class="section-header">
+        <img src="../../Iconos/Android.png" alt="Android" class="section-icon">
+        <div class="section-titles">
+          <h1 class="section-title">Upgrade APK</h1>
+          <p class="section-subtitle">Gestiona las versiones de la aplicación. Sube nuevos APK y consulta el historial de versiones</p>
+        </div>
+      </div>
+
+      <div class="apk-dashboard">
+        <div class="apk-top-row">
+          <div class="apk-dropzone" id="dropzone">
+            <svg class="dz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+              <path d="M12 15V9"/>
+              <path d="m9 12 3-3 3 3"/>
+            </svg>
+            <h3 class="dz-title">Arrastra tu APK aquí</h3>
+            <p class="dz-subtitle">o haz clic para seleccionar un archivo</p>
+            <p class="dz-hint">Solo archivos <span>.apk</span> (Máx. 50 MB)</p>
+            <input type="file" id="fileInput" accept=".apk" hidden>
+          </div>
+
+          <div class="apk-info-card">
+            <div class="info-header">
+              <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="#1776F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+              <span class="info-title">Información del APK</span>
+            </div>
+            <p class="info-desc">El archivo se subirá y quedará disponible como una nueva versión de la aplicación.</p>
+            <button class="btn-select-apk" onclick="document.getElementById('fileInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                <path d="M12 15V9"/>
+                <path d="m9 12 3-3 3 3"/>
+              </svg>
+              Seleccionar APK
+            </button>
+          </div>
+        </div>
+
+        <div class="versions-section">
+          <div class="versions-header">
+            <div class="versions-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+              Historial de Versiones
+            </div>
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchInput" placeholder="Buscar versión...">
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="versions-table">
+              <thead>
+                <tr>
+                  <th>Versión</th>
+                  <th>Usuario que subió</th>
+                  <th>Fecha y hora</th>
+                  <th>Tamaño</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <!-- Aquí se inyectarán las filas dinámicamente -->
+              <tbody id="tablaVersionesBody">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: #666; padding: 20px;">Cargando versiones...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="menu-overlay" id="menuOverlay"></div>
+
+  <!-- Modal de Notificación Personalizado -->
+  <div class="custom-modal-overlay" id="modalOverlay">
+    <div class="custom-modal-content">
+      <div class="modal-icon">🎉</div>
+      <h3 class="modal-title">¡Éxito!</h3>
+      <p class="modal-text">El APK se ha subido y registrado correctamente.</p>
+      <button class="modal-btn" id="modalCloseBtn">Aceptar</button>
+    </div>
+  </div>
+
+  <script src="../../Login/config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
