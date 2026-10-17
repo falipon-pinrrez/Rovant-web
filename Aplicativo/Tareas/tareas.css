@@ -220,3 +220,7 @@
   .header .user-text { display: none; }
   .modal-foot { flex-wrap: wrap; }
 }
+
+/* ---------- Avisos ---------- */
+.aviso { padding: 10px 14px; border-radius: 10px; font-size: 13px; background: #E3F0FD; color: #1B60BF; }
+.aviso-error { background: #FDE1E1; color: #B02A2A; }

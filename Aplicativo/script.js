@@ -6,6 +6,7 @@ let usuariosEquipo = [];
 let tareas = [];
 let configuracionUsuario = null;
 let tabActiva = "grupo";
+const avataresEquipo = {};   // user_id -> archivo/URL de avatar
 
 /* ============================================================
    AVATAR POR DEFECTO (rotativo)
@@ -18,6 +19,12 @@ function obtenerAvatar(index) {
     "../Iconos/Avatar/avatar4.png"
   ];
   return avatares[index % avatares.length];
+}
+
+function avatarDeUsuario(userId, index = 0) {
+  const f = avataresEquipo[userId];
+  if (!f) return obtenerAvatar(index);
+  return (f.startsWith('../') || f.startsWith('http')) ? f : '../Iconos/Avatar/' + f;
 }
 
 /* ============================================================
@@ -53,6 +60,53 @@ function obtenerAvatarUsuario(index = 0) {
 /* ============================================================
    RENDER DE TAREAS
    ============================================================ */
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+const ESTADOS_TAREA = {
+  iniciar:   { texto: "Por iniciar", badge: "badge-pending" },
+  proceso:   { texto: "En proceso",  badge: "badge-progress" },
+  revision:  { texto: "En revisión", badge: "badge-review" },
+  terminada: { texto: "Terminada",   badge: "badge-done" }
+};
+
+/* ============================================================
+   CARGAR TAREAS DESDE SUPABASE (tabla tareas_rovant)
+   ============================================================ */
+async function cargarTareasDesdeSupabase() {
+  const { data, error } = await supabaseClient
+    .from("tareas_rovant")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("No se pudieron cargar las tareas:", error.message);
+    tareas = [];
+    return;
+  }
+
+  tareas = (data || []).map(r => {
+    const asignados = (r.asignados || []).map(String);
+    const idx = usuariosEquipo.findIndex(u => String(u.id) === asignados[0]);
+    const persona = idx >= 0 ? usuariosEquipo[idx] : null;
+    const est = ESTADOS_TAREA[r.estado] || ESTADOS_TAREA.iniciar;
+    const esYo = persona && usuarioActual && String(persona.id) === String(usuarioActual.id);
+    return {
+      nombre: r.titulo,
+      estado: est.texto,
+      badge: est.badge,
+      completa: r.estado === "terminada",
+      asignados,
+      fecha: r.fecha
+        ? new Date(r.fecha + "T00:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })
+        : "Sin fecha",
+      persona: persona ? persona.nombre + (asignados.length > 1 ? ` +${asignados.length - 1}` : "") : "Sin asignar",
+      avatar: persona ? (esYo ? obtenerAvatarUsuario(idx) : avatarDeUsuario(persona.id, idx)) : obtenerAvatar(0)
+    };
+  });
+}
+
 function renderTareas() {
   const contenedor = document.getElementById("taskList");
   if (!contenedor) return;
@@ -60,9 +114,10 @@ function renderTareas() {
   let filtradas = tareas;
 
   if (tabActiva === "completas") {
-    filtradas = tareas.filter(t => t.estado === "Realizado");
+    filtradas = tareas.filter(t => t.completa);
   } else if (tabActiva === "mis") {
-    filtradas = tareas.filter(t => t.estado === "En Progreso");
+    const yo = usuarioActual ? String(usuarioActual.id) : null;
+    filtradas = tareas.filter(t => yo && t.asignados.includes(yo));
   }
 
   if (filtradas.length === 0) {
@@ -92,14 +147,14 @@ function renderTareas() {
   contenedor.innerHTML = filtradas.map(t => `
     <div class="task-item">
       <div class="task-name-row">
-        <span class="task-name">${t.nombre}</span>
+        <span class="task-name">${escHtml(t.nombre)}</span>
         <span class="task-badge ${t.badge}">${t.estado}</span>
       </div>
       <div class="task-meta">
         <img src="../Iconos/calendario.png" alt="Fecha">
         <span class="meta-text">${t.fecha}</span>
-        <img src="${t.avatar}" alt="${t.persona}" class="meta-avatar">
-        <span class="meta-text">${t.persona}</span>
+        <img src="${t.avatar}" alt="${escHtml(t.persona)}" class="meta-avatar">
+        <span class="meta-text">${escHtml(t.persona)}</span>
       </div>
     </div>
   `).join("");
@@ -198,7 +253,7 @@ function renderEquipo(lista) {
 
     // Si el usuario de la lista es el logueado, usar SU avatar guardado
     const esYo = usuarioActual && String(u.id) === String(usuarioActual.id);
-    const avatar = esYo ? obtenerAvatarUsuario(i) : obtenerAvatar(i);
+    const avatar = esYo ? obtenerAvatarUsuario(i) : avatarDeUsuario(u.id, i);
 
     return `
       <div class="team-member">
@@ -316,6 +371,11 @@ async function cargarDatosDesdeSupabase() {
     }
 
     usuariosEquipo = usuarios || [];
+
+    // Avatares guardados de todo el equipo
+    const { data: cfgs } = await supabaseClient
+      .from("configuracion_usuario").select("user_id, avatar_url");
+    (cfgs || []).forEach(c => { avataresEquipo[c.user_id] = c.avatar_url; });
     console.log("✅ Usuarios cargados desde Supabase:", usuariosEquipo);
 
     // 4) Encontrar usuario actual
@@ -348,8 +408,8 @@ async function cargarDatosDesdeSupabase() {
     // 6) Renderizar equipo
     renderEquipo(usuariosEquipo);
 
-    // 7) Tareas (vacío por ahora)
-    tareas = [];
+    // 7) Tareas desde Supabase
+    await cargarTareasDesdeSupabase();
     renderTareas();
 
   } catch (err) {

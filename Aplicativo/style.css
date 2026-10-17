@@ -861,4 +861,4 @@ img[src*="equipo.png"].rc-icon {
   }
 
   .task-list { max-height: 260px; }
-}
+}.badge-review { background: #8B5CF6; }
