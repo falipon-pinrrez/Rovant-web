@@ -104,6 +104,9 @@ function cardTarea(x) {
       <div class="ct-foot">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z"/></svg>
         <span><span class="ct-clabel">Comentarios </span>(${x.com.length})</span>
+        <button type="button" class="ct-del" data-del="${x.id}" title="Eliminar tarea" aria-label="Eliminar tarea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
       </div>
     </article>`;
 }
@@ -138,8 +141,8 @@ function inicializarArrastre() {
 
   board.addEventListener("pointerdown", e => {
     const card = e.target.closest(".card-tarea");
-    if (!card || (e.pointerType === "mouse" && e.button !== 0)) return;
-    st = { card, id: +card.dataset.id, x0: e.clientX, y0: e.clientY, drag: false, ghost: null, dx: 0, dy: 0 };
+    if (!card || e.target.closest(".ct-del") || (e.pointerType === "mouse" && e.button !== 0)) return;
+    st = { card, id: card.dataset.id, x0: e.clientX, y0: e.clientY, drag: false, ghost: null, dx: 0, dy: 0 };
   });
 
   window.addEventListener("pointermove", e => {
@@ -192,6 +195,15 @@ let editando = false;
 function usuarioComentario() {
   const u = usuarioSesion() || {};
   return { uid: u.id || null, n: u.nombre || "Tú", src: u.id ? av(u.id) : AVATARES_DEFECTO[0] };
+}
+
+async function borrarTarea(id) {
+  if (!confirm("¿Eliminar esta tarea?")) return false;
+  const { error } = await supabaseClient.from("tareas_rovant").delete().eq("id", id);
+  if (error) { errorDb(error); return false; }
+  TAREAS = TAREAS.filter(x => x.id !== id);
+  renderTablero();
+  return true;
 }
 
 function renderAsignados() {
@@ -251,12 +263,20 @@ function inicializarModal() {
   $("modal").addEventListener("mousedown", e => { if (e.target.id === "modal") cerrarModal(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && borrador) cerrarModal(); });
 
-  $("fAsignados").addEventListener("click", e => {
+  $("fAsignados").addEventListener("click", async e => {
     const b = e.target.closest(".assign-opt");
     if (!b) return;
     const n = +b.dataset.m;
     borrador.av = borrador.av.includes(n) ? borrador.av.filter(x => x !== n) : [...borrador.av, n];
     renderAsignados();
+    if (editando) {
+      const { error } = await supabaseClient.from("tareas_rovant")
+        .update({ asignados: borrador.av, updated_at: new Date().toISOString() }).eq("id", borrador.id);
+      if (error) return errorDb(error);
+      const t = TAREAS.find(x => x.id === borrador.id);
+      if (t) t.av = [...borrador.av];
+      renderTablero();
+    }
   });
 
   const comentar = async () => {
@@ -282,11 +302,11 @@ function inicializarModal() {
   $("fNuevoComentario").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); comentar(); } });
 
   $("btnEliminar").addEventListener("click", async () => {
-    if (!confirm("¿Eliminar esta tarea?")) return;
-    const { error } = await supabaseClient.from("tareas_rovant").delete().eq("id", borrador.id);
-    if (error) return errorDb(error);
-    TAREAS = TAREAS.filter(x => x.id !== borrador.id);
-    cerrarModal(); renderTablero();
+    if (await borrarTarea(borrador.id)) cerrarModal();
+  });
+  $("board").addEventListener("click", e => {
+    const b = e.target.closest(".ct-del");
+    if (b) borrarTarea(b.dataset.del);
   });
 
   $("formTarea").addEventListener("submit", async e => {
